@@ -1409,16 +1409,20 @@ let currentMode='default';
 const origColors = new Map();
 
 function storeOrig(){
-  // Key by element reference so tag renames don't break color lookup
-  document.querySelectorAll('#diagram-inner g[data-tag]').forEach(g=>{
+  origColors.clear();
+  document.querySelectorAll('#diagram-inner g[data-uid]').forEach(g=>{
     const saved=[];
     g.querySelectorAll('path,rect,ellipse,circle').forEach(s=>{
       var fill   = s.getAttribute('fill');
       var stroke = s.getAttribute('stroke');
       var vis    = s.getAttribute('visibility');
+      // draw.io uses inline style for fill — read it as fallback
+      var styleFill = s.style.fill || null;
+      var styleStroke = s.style.stroke || null;
       // isLine: fill=none means color is in stroke (pipes/lines)
-      var isLine = (!fill || fill==='none') && stroke && stroke!=='white' && stroke!=='none' && vis!=='hidden';
-      saved.push({ el:s, fill:fill, stroke:stroke, isLine:isLine });
+      var effectiveFill = fill || styleFill;
+      var isLine = (!effectiveFill || effectiveFill==='none') && (stroke||styleStroke) && stroke!=='white' && stroke!=='none' && vis!=='hidden';
+      saved.push({ el:s, fill:fill, stroke:stroke, styleFill:styleFill, styleStroke:styleStroke, isLine:isLine });
     });
     origColors.set(g, saved);
   });
@@ -1456,17 +1460,18 @@ function getColorForMode(tag, mode) {
 function applyToMap(){ applyColors(); closeModal(); }
 
 function applyColors(){
-  const all=document.querySelectorAll('#diagram-inner g[data-tag]');
+  // Use g[data-tag] for coloring, g[data-uid] for restore (covers untagged elements too)
+  const all=document.querySelectorAll('#diagram-inner g[data-uid]');
   if(currentMode==='default'){
     all.forEach(g=>{
       const s=origColors.get(g);
       s&&s.forEach(i=>{
         if(i.isLine){
-          // Default: black lines (original PFD engineering drawing style)
-          i.el.setAttribute('stroke', '#000000');
+          i.el.setAttribute('stroke', i.stroke || '#000000');
+          if (i.styleStroke !== null) i.el.style.stroke = i.styleStroke || '';
         } else {
-          // Default: restore original fill (white for shapes, none for hitbox lines)
-          i.el.setAttribute('fill', i.fill||'none');
+          if (i.fill !== null) i.el.setAttribute('fill', i.fill);
+          i.el.style.fill = i.styleFill || '';
         }
       });
     });
@@ -1502,12 +1507,21 @@ function applyColors(){
 
     saved.forEach(function(s) {
       if (s.isLine) {
-        // Line/pipe: apply color to stroke
-        s.el.setAttribute('stroke', worstColor || s.stroke);
+        s.el.setAttribute('stroke', worstColor || s.stroke || s.styleStroke || '#000000');
+        if (s.styleStroke !== null) s.el.style.stroke = worstColor || s.styleStroke || '';
       } else {
-        // Shape: apply color to fill (skip fill=none elements like hitbox lines)
-        if (!s.fill || s.fill === 'none') return;
-        s.el.setAttribute('fill', worstColor || '#d0d0d0');
+        if (s.fill === null && s.styleFill === null) return; // no fill at all
+        if (s.fill === 'none' && !s.styleFill) return;
+        if (worstColor) {
+          // Apply color — use both attribute and style to cover draw.io elements
+          s.el.setAttribute('fill', worstColor);
+          s.el.style.fill = worstColor;
+        } else {
+          // Restore original
+          if (s.fill !== null) s.el.setAttribute('fill', s.fill);
+          else s.el.removeAttribute('fill');
+          s.el.style.fill = s.styleFill || '';
+        }
       }
     });
   });
