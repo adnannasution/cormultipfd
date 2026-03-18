@@ -47,6 +47,33 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#222;height
 .zoom-box-active{cursor:crosshair!important}
 #zoom-box-rect{position:absolute;border:2px dashed #1565c0;background:rgba(21,101,192,.08);pointer-events:none;display:none;z-index:100}
 
+/* ── Condition animations ── */
+@keyframes pulse-severe {
+  0%,100% { filter: drop-shadow(0 0 0px rgba(244,67,54,0)); }
+  50%      { filter: drop-shadow(0 0 6px rgba(244,67,54,.85)); }
+}
+@keyframes pulse-high {
+  0%,100% { filter: drop-shadow(0 0 0px rgba(255,152,0,0)); }
+  50%      { filter: drop-shadow(0 0 5px rgba(255,152,0,.7)); }
+}
+.cond-pulse-severe { animation: pulse-severe 2s ease-in-out infinite; }
+.cond-pulse-high   { animation: pulse-high   2.5s ease-in-out infinite; }
+
+/* ── Hover glow on diagram elements ── */
+#diagram-inner g[data-tag] {
+  transition: filter .15s ease;
+}
+#diagram-inner g[data-tag]:hover {
+  filter: drop-shadow(0 0 5px rgba(21,101,192,.55)) !important;
+  cursor: pointer;
+}
+#diagram-inner g[data-tag].cond-pulse-severe:hover {
+  filter: drop-shadow(0 0 8px rgba(244,67,54,.95)) !important;
+}
+#diagram-inner g[data-tag].cond-pulse-high:hover {
+  filter: drop-shadow(0 0 7px rgba(255,152,0,.9)) !important;
+}
+
 /* ── Diagram ── */
 .diag-wrap{flex:1;position:relative;overflow:hidden;background:#f5f7fa;min-height:0}
 .diag{width:100%;height:100%;overflow:hidden;cursor:grab;position:relative}
@@ -1475,6 +1502,7 @@ function applyColors(){
         }
       });
     });
+    clearPulseClasses();
     return;
   }
 
@@ -1524,7 +1552,21 @@ function applyColors(){
         }
       }
     });
+
+    // Apply pulse animation based on worst level
+    g.classList.remove('cond-pulse-severe', 'cond-pulse-high');
+    if (worstColor && fullTag) {
+      var worstLabel = worstIdx >= 0 ? scale[worstIdx].label : '';
+      if (worstLabel === 'Severe') g.classList.add('cond-pulse-severe');
+      else if (worstLabel === 'High') g.classList.add('cond-pulse-high');
+    }
   });
+}
+
+// Clear all pulse classes (called on default mode)
+function clearPulseClasses() {
+  document.querySelectorAll('#diagram-inner g.cond-pulse-severe, #diagram-inner g.cond-pulse-high')
+    .forEach(function(g){ g.classList.remove('cond-pulse-severe','cond-pulse-high'); });
 }
 
 // ══════════════════════════════════════════════════════
@@ -2663,7 +2705,6 @@ document.getElementById('btn-download').addEventListener('click', async function
       <div style="display:flex;border-bottom:2px solid #eee;padding:0 18px;background:#fafafa">
         <button class="etab active" id="pmtab-list" onclick="switchPMTab('list',this)" style="font-size:11px">📋 Daftar PFD</button>
         <button class="etab" id="pmtab-upload" onclick="switchPMTab('upload',this)" style="font-size:11px">⬆ Upload PFD Baru</button>
-        <button class="etab" id="pmtab-tag" onclick="switchPMTab('tag',this)" style="font-size:11px">🏷 Tagger</button>
       </div>
 
       <!-- Pane: List -->
@@ -2697,183 +2738,12 @@ document.getElementById('btn-download').addEventListener('click', async function
         </div>
       </div>
 
-      <!-- Pane: Tagger -->
-      <div id="pmpane-tag" style="padding:0;display:none">
-        <div style="padding:10px 18px;border-bottom:1px solid #eee;background:#f8f9fb;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-size:11px;color:#666">PFD:</span>
-          <select id="tagger-pfd-select" onchange="loadTaggerPFD(this.value)" style="padding:4px 8px;border:1px solid #d0d5dd;border-radius:5px;font-size:11px;flex:1;min-width:140px">
-            <option value="">— Pilih PFD untuk di-tag —</option>
-          </select>
-          <span id="tagger-info" style="font-size:10px;color:#aaa;margin-left:auto"></span>
-        </div>
-        <div style="padding:8px 18px;border-bottom:1px solid #eee;background:#fffbf0;font-size:11px;color:#888">
-          💡 Klik elemen di diagram → assign tag. Elemen yang sudah di-tag berwarna biru.
-        </div>
-        <div id="tagger-svg-wrap" style="width:100%;height:340px;overflow:auto;background:#f5f7fa;position:relative">
-          <div style="color:#aaa;text-align:center;padding:60px;font-size:12px">Pilih PFD untuk mulai tagging</div>
-        </div>
-        <!-- Inline tag form (shown on click) -->
-        <div id="tagger-form" style="display:none;padding:10px 18px;border-top:1px solid #eee;background:#f8faff">
-          <div style="font-size:11px;color:#888;margin-bottom:6px">Assign tag untuk: <b id="tagger-cell-id" style="color:#1565c0;font-family:monospace"></b></div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <input type="text" id="tagger-tag-input" placeholder="Tag (misal: E-101, C-101...)" style="flex:1;padding:6px 10px;border:1.5px solid #d0d5dd;border-radius:6px;font-size:12px;outline:none">
-            <select id="tagger-type-input" style="padding:6px 8px;border:1.5px solid #d0d5dd;border-radius:6px;font-size:11px;outline:none;background:#fff">
-              <option value="">— Tipe —</option>
-              <option>Column / Tower</option>
-              <option>Heat Exchanger</option>
-              <option>Fired Heater</option>
-              <option>Pump</option>
-              <option>Vessel</option>
-              <option>Process Stream</option>
-              <option>Pipe/Line No.</option>
-              <option>Process Line</option>
-            </select>
-            <button onclick="saveTaggerTag()" style="padding:6px 14px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">✓ Simpan</button>
-            <button onclick="clearTaggerTag()" style="padding:6px 10px;background:#fee2e2;color:#c62828;border:1px solid #ef9a9a;border-radius:6px;font-size:11px;cursor:pointer" title="Hapus tag">✕</button>
-          </div>
-        </div>
-      </div>
 
     </div>
   </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════
-//  TAGGER MODE (halaman utama)
-// ══════════════════════════════════════════════════════
-var taggerModeActive = false;
-var taggerBarCurrentCellId = null;
-var taggerBarCurrentG = null;
-
-function toggleTaggerMode() {
-  taggerModeActive = !taggerModeActive;
-  var btn = document.getElementById('btn-tagger');
-  var bar = document.getElementById('tagger-bar');
-  btn.classList.toggle('primary', taggerModeActive);
-  bar.style.display = taggerModeActive ? 'flex' : 'none';
-  closeTaggerBarForm();
-
-  // Bind/unbind click on all g[data-uid] in current diagram
-  document.querySelectorAll('#diagram-inner g[data-uid]').forEach(function(g) {
-    if (taggerModeActive) {
-      g.addEventListener('click', onTaggerClick);
-      g.style.cursor = 'crosshair';
-    } else {
-      g.removeEventListener('click', onTaggerClick);
-      g.style.cursor = 'pointer';
-      resetTaggerHighlight(g);
-    }
-  });
-}
-
-function onTaggerClick(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  var g = this;
-  var uid = g.getAttribute('data-uid');
-  if (!uid || uid === '0' || uid === '1') return;
-
-  // Reset previous highlight
-  if (taggerBarCurrentG) resetTaggerHighlight(taggerBarCurrentG);
-  taggerBarCurrentG = g;
-  taggerBarCurrentCellId = uid;
-
-  // Highlight selected
-  g.querySelectorAll('rect,ellipse,path,polygon').forEach(function(s) {
-    if (s.getAttribute('pointer-events') === 'stroke') return;
-    if (!s.getAttribute('fill') || s.getAttribute('fill') === 'none') return;
-    s.style.outline = '2px solid #e65100';
-    s.style.fill = '#fff3e0';
-  });
-
-  // Populate form
-  document.getElementById('tagger-bar-cellid').textContent = uid;
-  var existing = taggerTags[uid] || {};
-  // Also check data-tag on element
-  var existTag = g.getAttribute('data-tag') || existing.tag || '';
-  var existType = existing.type || '';
-  document.getElementById('tagger-bar-tag').value = existTag;
-  document.getElementById('tagger-bar-type').value = existType;
-
-  // Show form
-  var form = document.getElementById('tagger-bar-form');
-  form.style.display = 'flex';
-  document.getElementById('tagger-bar-hint').style.display = 'none';
-  document.getElementById('tagger-bar-tag').focus();
-}
-
-function resetTaggerHighlight(g) {
-  g.querySelectorAll('rect,ellipse,path,polygon').forEach(function(s) {
-    s.style.outline = '';
-    s.style.fill = '';
-  });
-}
-
-function closeTaggerBarForm() {
-  if (taggerBarCurrentG) resetTaggerHighlight(taggerBarCurrentG);
-  taggerBarCurrentG = null;
-  taggerBarCurrentCellId = null;
-  var form = document.getElementById('tagger-bar-form');
-  if (form) form.style.display = 'none';
-  var hint = document.getElementById('tagger-bar-hint');
-  if (hint) hint.style.display = '';
-}
-
-async function saveTaggerBarTag() {
-  if (!taggerBarCurrentCellId) return;
-  var tag = document.getElementById('tagger-bar-tag').value.trim();
-  var type = document.getElementById('tagger-bar-type').value;
-  var sb = document.getElementById('sb');
-  if (!tag) { alert('Tag tidak boleh kosong'); return; }
-
-  try {
-    await apiPost('/api/tags', { unit: currentPFDUnit, uid: taggerBarCurrentCellId, tag, type });
-
-    // Update element in diagram
-    var g = taggerBarCurrentG;
-    if (g) {
-      g.setAttribute('data-tag', tag);
-      var tip = (type ? 'Type: ' + type + '\n' : '') + 'Tag: ' + tag;
-      g.setAttribute('data-tip', tip);
-      // Re-bind tooltip for this element
-      g.addEventListener('mouseenter', function(e){ showTip(e,g); });
-      g.addEventListener('mouseleave', hideTip);
-      g.addEventListener('mousemove', mvTip);
-    }
-
-    // Update taggerTags memory
-    taggerTags[taggerBarCurrentCellId] = { tag, type };
-
-    if (sb) { sb.textContent = '✅ Tag "' + tag + '" disimpan'; setTimeout(function(){ sb.textContent=''; }, 2000); }
-    closeTaggerBarForm();
-  } catch(e) {
-    if (sb) { sb.textContent = '❌ Gagal simpan tag'; setTimeout(function(){ sb.textContent=''; }, 2000); }
-  }
-}
-
-async function deleteTaggerBarTag() {
-  if (!taggerBarCurrentCellId) return;
-  if (!confirm('Hapus tag untuk elemen ini?')) return;
-  try {
-    await fetch('/api/tags/' + currentPFDUnit + '/' + taggerBarCurrentCellId, { method: 'DELETE' });
-    var g = taggerBarCurrentG;
-    if (g) {
-      g.removeAttribute('data-tag');
-      g.removeAttribute('data-tip');
-    }
-    delete taggerTags[taggerBarCurrentCellId];
-    closeTaggerBarForm();
-  } catch(e) { alert('Gagal menghapus tag'); }
-}
-
-// ══════════════════════════════════════════════════════
-//  PFD MANAGER
-// ══════════════════════════════════════════════════════
-var currentPFDUnit = 'cdu11'; // default unit (existing PFD)
-var taggerCurrentUnit = null;
-var taggerCurrentCellId = null;
-var taggerTags = {}; // cellId → {tag, type}
 
 function openPFDManager() {
   document.getElementById('pfd-overlay').classList.add('open');
@@ -2884,11 +2754,10 @@ function closePFDManager() {
   document.getElementById('pfd-overlay').classList.remove('open');
 }
 function switchPMTab(tab, btn) {
-  ['list','upload','tag'].forEach(function(t) {
+  ['list','upload'].forEach(function(t) {
     document.getElementById('pmpane-' + t).style.display = t === tab ? '' : 'none';
     document.getElementById('pmtab-' + t).classList.toggle('active', t === tab);
   });
-  if (tab === 'tag') loadTaggerPFDOptions();
 }
 
 // ── PFD List ───────────────────────────────────────────
@@ -3137,168 +3006,6 @@ async function switchPFD(unit) {
     console.error(e);
     if (sb) sb.textContent = '❌ Gagal memuat PFD';
   }
-}
-
-// ── Tagger ─────────────────────────────────────────────
-async function loadTaggerPFDOptions() {
-  try {
-    var pfds = await apiGet('/api/pfds');
-    var sel = document.getElementById('tagger-pfd-select');
-    while (sel.options.length > 1) sel.remove(1);
-    if (pfds && pfds.length) {
-      pfds.forEach(function(p) {
-        var opt = document.createElement('option');
-        opt.value = p.unit;
-        opt.textContent = p.name;
-        sel.appendChild(opt);
-      });
-    }
-  } catch(e) {}
-}
-
-async function loadTaggerPFD(unit) {
-  if (!unit) return;
-  taggerCurrentUnit = unit;
-  taggerTags = {};
-  var wrap = document.getElementById('tagger-svg-wrap');
-  var info = document.getElementById('tagger-info');
-  wrap.innerHTML = '<div style="color:#aaa;text-align:center;padding:40px;font-size:12px">Memuat SVG...</div>';
-
-  try {
-    var pfd = await apiGet('/api/pfds/' + unit);
-    if (!pfd || !pfd.svg_content) { wrap.innerHTML = '<div style="color:#c62828;padding:20px;font-size:12px">SVG tidak ditemukan</div>'; return; }
-
-    // Load existing tags for this unit
-    var remoteTags = await apiGet('/api/tags?unit=' + unit);
-    if (remoteTags) {
-      Object.values(remoteTags).forEach(function(row) {
-        taggerTags[row.uid] = { tag: row.tag, type: row.type || '' };
-      });
-    }
-
-    wrap.innerHTML = pfd.svg_content;
-    var svgEl = wrap.querySelector('svg');
-    if (!svgEl) { wrap.innerHTML = '<div style="color:#c62828;padding:20px;font-size:12px">Gagal parse SVG</div>'; return; }
-
-    // Scale SVG to fit wrap
-    svgEl.style.width = '100%';
-    svgEl.style.height = 'auto';
-    svgEl.style.display = 'block';
-
-    // Apply existing tags visual + attach click
-    var tagged = 0;
-    svgEl.querySelectorAll('g[data-uid]').forEach(function(g) {
-      var uid = g.getAttribute('data-uid');
-      if (!uid || uid === '0' || uid === '1') return;
-      g.style.cursor = 'pointer';
-      // Highlight already-tagged elements
-      if (taggerTags[uid]) {
-        highlightTaggerCell(g, true);
-        tagged++;
-      }
-      g.addEventListener('click', function(e) {
-        e.stopPropagation();
-        selectTaggerCell(uid, g);
-      });
-    });
-
-    info.textContent = tagged + ' sudah di-tag dari ' + Object.keys(taggerTags).length + ' total';
-
-  } catch(e) {
-    wrap.innerHTML = '<div style="color:#c62828;padding:20px;font-size:12px">Error: ' + e.message + '</div>';
-  }
-}
-
-function selectTaggerCell(cellId, gEl) {
-  taggerCurrentCellId = cellId;
-  var existing = taggerTags[cellId] || {};
-  document.getElementById('tagger-cell-id').textContent = cellId;
-  document.getElementById('tagger-tag-input').value = existing.tag || '';
-  document.getElementById('tagger-type-input').value = existing.type || '';
-  document.getElementById('tagger-form').style.display = '';
-  document.getElementById('tagger-tag-input').focus();
-
-  // Highlight selected
-  var wrap = document.getElementById('tagger-svg-wrap');
-  wrap.querySelectorAll('g[data-uid]').forEach(function(g) {
-    var uid = g.getAttribute('data-uid');
-    if (uid === cellId) {
-      highlightTaggerCell(g, 'selected');
-    } else if (taggerTags[uid]) {
-      highlightTaggerCell(g, true);
-    } else {
-      highlightTaggerCell(g, false);
-    }
-  });
-}
-
-function highlightTaggerCell(g, state) {
-  // state: true=tagged(blue), 'selected'=active(orange), false=reset
-  g.querySelectorAll('rect,ellipse,path,polygon').forEach(function(s) {
-    if (s.getAttribute('fill') === 'none' || s.getAttribute('pointer-events') === 'stroke') return;
-    if (state === 'selected') {
-      s.style.fill = '#fff3e0';
-      s.style.stroke = '#e65100';
-      s.style.strokeWidth = '2';
-    } else if (state === true) {
-      s.style.fill = '#e3f2fd';
-      s.style.stroke = '#1565c0';
-      s.style.strokeWidth = '1.5';
-    } else {
-      s.style.fill = '';
-      s.style.stroke = '';
-      s.style.strokeWidth = '';
-    }
-  });
-}
-
-async function saveTaggerTag() {
-  if (!taggerCurrentCellId || !taggerCurrentUnit) return;
-  var tag = document.getElementById('tagger-tag-input').value.trim();
-  var type = document.getElementById('tagger-type-input').value;
-  if (!tag) { alert('Tag tidak boleh kosong'); return; }
-
-  try {
-    await apiPost('/api/tags', { unit: taggerCurrentUnit, uid: taggerCurrentCellId, tag, type });
-    taggerTags[taggerCurrentCellId] = { tag, type };
-
-    // Update highlight in tagger modal
-    var wrap = document.getElementById('tagger-svg-wrap');
-    var g = wrap.querySelector('g[data-uid="' + taggerCurrentCellId + '"]');
-    if (g) highlightTaggerCell(g, true);
-
-    // If same unit as main diagram, update main diagram element too
-    if (taggerCurrentUnit === currentPFDUnit) {
-      var mainG = document.querySelector('#diagram-inner g[data-uid="' + taggerCurrentCellId + '"]');
-      if (mainG) {
-        mainG.setAttribute('data-tag', tag);
-        var tip = (type ? 'Type: ' + type + '\n' : '') + 'Tag: ' + tag;
-        mainG.setAttribute('data-tip', tip);
-        mainG.addEventListener('mouseenter', function(e){ showTip(e,mainG); });
-        mainG.addEventListener('mouseleave', hideTip);
-        mainG.addEventListener('mousemove', mvTip);
-      }
-    }
-
-    var tagged = Object.keys(taggerTags).length;
-    document.getElementById('tagger-info').textContent = tagged + ' sudah di-tag';
-    document.getElementById('tagger-form').style.display = 'none';
-    taggerCurrentCellId = null;
-  } catch(e) { alert('Gagal menyimpan: ' + e.message); }
-}
-
-async function clearTaggerTag() {
-  if (!taggerCurrentCellId || !taggerCurrentUnit) return;
-  if (!confirm('Hapus tag untuk elemen ini?')) return;
-  try {
-    await fetch('/api/tags/' + taggerCurrentUnit + '/' + taggerCurrentCellId, { method: 'DELETE' });
-    delete taggerTags[taggerCurrentCellId];
-    var wrap = document.getElementById('tagger-svg-wrap');
-    var g = wrap.querySelector('g[data-uid="' + taggerCurrentCellId + '"]');
-    if (g) highlightTaggerCell(g, false);
-    document.getElementById('tagger-form').style.display = 'none';
-    taggerCurrentCellId = null;
-  } catch(e) { alert('Gagal menghapus'); }
 }
 
 // Init: load PFD dropdown on startup
