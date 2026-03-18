@@ -50,7 +50,7 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#222;height
 /* ── Condition animations ── */
 @keyframes glow-cond {
   0%,100% { filter: none; }
-  50%     { filter: drop-shadow(0 0 4px var(--glow-color, #f44336)); }
+  50%     { filter: drop-shadow(0 0 7px var(--glow-color, #f44336)) drop-shadow(0 0 3px var(--glow-color, #f44336)); }
 }
 .cond-pulse-severe { animation: glow-cond 2s ease-in-out infinite; will-change: filter; }
 .cond-pulse-high   { animation: glow-cond 2s ease-in-out infinite; will-change: filter; }
@@ -941,13 +941,11 @@ Tag: 186" data-tag="186" data-uid="G0498"><rect x="705.5" y="-688" width="48" he
       <h3 id="edit-title">✏️ Edit Tag</h3>
       <button class="x-btn" onclick="closeEdit()">✕</button>
     </div>
-    <!-- Tab bar -->
-    <div class="etab-bar">
-      <button class="etab active" id="etab-tag"        onclick="switchEditTab('tag',this)">🏷 Tag</button>
-      <button class="etab"        id="etab-visual"     onclick="switchEditTab('visual',this)">👁 Visual</button>
-      <button class="etab"        id="etab-corrosion"  onclick="switchEditTab('corrosion',this)">🔬 Corrosion</button>
-      <button class="etab"        id="etab-rl"         onclick="switchEditTab('rl',this)">⏳ Life</button>
-      <button class="etab"        id="etab-settings"   onclick="switchEditTab('settings',this)" style="margin-left:auto;color:#888">⚙</button>
+    <!-- Tab bar — dynamic from APP_CONFIG -->
+    <div class="etab-bar" id="edit-tab-bar">
+      <button class="etab active" id="etab-tag" onclick="switchEditTab('tag',this)">🏷 Tag</button>
+      <!-- dynamic tabs injected by openEditUID() -->
+      <button class="etab" id="etab-settings" onclick="switchEditTab('settings',this)" style="margin-left:auto;color:#888">⚙</button>
     </div>
     <div class="edit-body">
 
@@ -976,63 +974,8 @@ Tag: 186" data-tag="186" data-uid="G0498"><rect x="705.5" y="-688" width="48" he
         </div>
       </div>
 
-      <!-- ── TAB: Visual ── -->
-      <div class="etab-pane" id="epane-visual">
-        <div style="margin-bottom:10px;font-size:11px;color:#888">Pilih nilai kondisi visual (1–4)</div>
-        <div class="cond-row">
-          <label>Nilai Visual</label>
-          <div class="vis-btns">
-            <button class="vis-btn" id="vbtn-1" onclick="selectVisual(1)">1<br><small>Low</small></button>
-            <button class="vis-btn" id="vbtn-2" onclick="selectVisual(2)">2<br><small>Moderate</small></button>
-            <button class="vis-btn" id="vbtn-3" onclick="selectVisual(3)">3<br><small>High</small></button>
-            <button class="vis-btn" id="vbtn-4" onclick="selectVisual(4)">4<br><small>Severe</small></button>
-          </div>
-        </div>
-        <div class="cond-row" style="margin-top:8px">
-          <label>Level</label>
-          <span id="edit-visual-badge" class="lv-badge empty">—</span>
-        </div>
-        <div class="cond-row">
-          <label>Catatan</label>
-          <input type="text" id="edit-visual-notes" placeholder="Catatan visual..." style="flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px">
-        </div>
-      </div>
-
-      <!-- ── TAB: Corrosion ── -->
-      <div class="etab-pane" id="epane-corrosion">
-        <div style="margin-bottom:10px;font-size:11px;color:#888">Input nilai → level warna otomatis</div>
-        <div class="cond-row">
-          <label>Corr. Rate (mm/yr)</label>
-          <input type="number" id="edit-corr-rate" step="0.001" min="0" placeholder="0.000" oninput="updateCorrLevel()">
-          <span id="edit-corr-rate-badge" class="lv-badge empty" style="margin-left:6px">—</span>
-        </div>
-        <div class="cond-row">
-          <label>Thickness (mm)</label>
-          <input type="number" id="edit-thickness" step="0.1" min="0" placeholder="0.0" oninput="updateCorrLevel()">
-          <span id="edit-thick-badge" class="lv-badge empty" style="margin-left:6px">—</span>
-        </div>
-        <div class="cond-row" style="margin-top:4px">
-          <label>Level Korosi</label>
-          <span id="edit-corr-badge" class="lv-badge empty">—</span>
-          <span style="font-size:10px;color:#aaa;margin-left:6px">(otomatis dari nilai)</span>
-        </div>
-      </div>
-
-      <!-- ── TAB: Remaining Life ── -->
-      <div class="etab-pane" id="epane-rl">
-        <div style="margin-bottom:10px;font-size:11px;color:#888">Input nilai → level warna otomatis</div>
-        <div class="cond-row">
-          <label>Remaining Life (thn)</label>
-          <input type="number" id="edit-rl-value" step="0.1" min="0" placeholder="0.0" oninput="updateRLLevel()">
-          <span id="edit-rl-badge" class="lv-badge empty" style="margin-left:6px">—</span>
-        </div>
-        <div style="margin-top:12px;padding:10px;background:#f8f9fb;border-radius:6px;font-size:11px;color:#888">
-          Threshold saat ini:<br>
-          🔴 Severe: ≤ <b id="thr-rl-severe"></b> thn &nbsp;
-          🟠 High: ≤ <b id="thr-rl-high"></b> thn &nbsp;
-          🔵 Moderate: ≤ <b id="thr-rl-mod"></b> thn
-        </div>
-      </div>
+      <!-- ── Dynamic condition panes (injected by openEditUID) ── -->
+      <div id="epane-dynamic-container"></div>
 
       <!-- ── TAB: Settings ── -->
       <div class="etab-pane" id="epane-settings">
@@ -1322,7 +1265,8 @@ function getColorForTag(tag, mode) {
   var scale = tab.scale;
 
   var entries = tab.fields.map(function(f) {
-    var val = d[f.key];
+    // Check dynamic data field first, then legacy fields
+    var val = (d.data && d.data[f.key] !== undefined) ? d.data[f.key] : d[f.key];
     if (val === undefined) val = d[f.key + '_value'] || d[f.key + '_level'] || 0;
     return resolveColorForField(f, val, scale);
   });
@@ -1340,7 +1284,8 @@ function getScaleIdxForTag(tag, mode) {
   if (!tab) return -1;
   var scale = tab.scale;
   var entries = tab.fields.map(function(f) {
-    var val = d[f.key];
+    // Check dynamic data field first, then legacy fields
+    var val = (d.data && d.data[f.key] !== undefined) ? d.data[f.key] : d[f.key];
     if (val === undefined) val = d[f.key + '_value'] || d[f.key + '_level'] || 0;
     return resolveColorForField(f, val, scale);
   });
@@ -2684,13 +2629,11 @@ function openEditUID(uid) {
   var tag = g.getAttribute('data-tag') || '';
   var tip = g.getAttribute('data-tip') || BEST_TIPS[tag] || '';
   var type = '';
-  tip.split('\n').forEach(function(l) {
-    if (l.startsWith('Type: ')) type = l.slice(6);
-  });
+  tip.split('\n').forEach(function(l) { if (l.startsWith('Type: ')) type = l.slice(6); });
 
   editTarget = { uid: uid, g: g, oldTag: tag };
 
-  // ── Populate Tag tab ──────────────────────────────────────────────────
+  // ── Tag tab ────────────────────────────────────────────────────────────
   document.getElementById('edit-orig').value = tag;
   var isPipe = isPipeType(type);
   document.getElementById('edit-row-single').style.display = isPipe ? 'none' : '';
@@ -2711,47 +2654,113 @@ function openEditUID(uid) {
   if (!matched) sel.selectedIndex = 0;
   document.getElementById('edit-type-custom').value = matched ? '' : type;
 
-  // ── Populate condition tabs from COND (use first tag for pipes) ───────
+  // ── Build dynamic condition tabs from APP_CONFIG ────────────────────────
+  var cfg = getActiveConfig();
   var firstTag = tag.split(' | ')[0].trim();
   var d = COND[firstTag] || COND[tag] || {};
+  var condData = d.data || {};  // dynamic fields
 
-  // Visual tab
-  var vn = parseInt(d.visual_value) || 0;
-  if (!vn) {
-    var lvToNum = {'Low':1,'Moderate':2,'High':3,'Severe':4};
-    vn = lvToNum[d.visual_level] || 0;
+  // Rebuild tab bar (keep Tag and Settings, inject condition tabs)
+  var tabBar = document.getElementById('edit-tab-bar');
+  if (tabBar) {
+    // Remove old dynamic tabs
+    tabBar.querySelectorAll('.etab-dynamic').forEach(function(b){ b.remove(); });
+    var settingsBtn = document.getElementById('etab-settings');
+    cfg.tabs.forEach(function(tab) {
+      var btn = document.createElement('button');
+      btn.className = 'etab etab-dynamic';
+      btn.id = 'etab-' + tab.key;
+      btn.textContent = tab.icon + ' ' + tab.label;
+      btn.addEventListener('click', function(){ switchEditTab(tab.key, btn); });
+      tabBar.insertBefore(btn, settingsBtn);
+    });
   }
-  selVisualVal = vn;
-  renderVisualButtons(vn);
-  var vb = document.getElementById('edit-visual-badge');
-  var vLv = (COLOR_SCALES.visual[vn - 1] || {}).label || '';
-  if(vb){ vb.className='lv-badge '+(vLv||'empty'); vb.textContent=vLv||'—'; }
-  var vNotes = document.getElementById('edit-visual-notes');
-  if(vNotes) vNotes.value = d.visual_notes || '';
 
-  // Corrosion tab
-  var crEl = document.getElementById('edit-corr-rate');
-  var thEl = document.getElementById('edit-thickness');
-  if(crEl) crEl.value = d.corrosion_rate || '';
-  if(thEl) thEl.value = d.thickness || '';
-  updateCorrLevel();
+  // Rebuild dynamic panes
+  var dynContainer = document.getElementById('epane-dynamic-container');
+  if (dynContainer) {
+    dynContainer.innerHTML = '';
+    cfg.tabs.forEach(function(tab) {
+      var pane = document.createElement('div');
+      pane.className = 'etab-pane';
+      pane.id = 'epane-' + tab.key;
+      pane.innerHTML = buildCondPane(tab, d, condData);
+      dynContainer.appendChild(pane);
+    });
+  }
 
-  // RL tab
-  var rlEl = document.getElementById('edit-rl-value');
-  if(rlEl) rlEl.value = d.rl_value || '';
-  updateRLLevel();
-  updateRLThresholdDisplay();
-
-  // ── Open correct tab based on currentMode ─────────────────────────────
-  var tabMap = { visual:'visual', corrosion:'corrosion', rl:'rl', default:'tag' };
-  var openTab = tabMap[currentMode] || 'tag';
-  switchEditTab(openTab, document.getElementById('etab-' + openTab));
+  // ── Open tab matching current mode ─────────────────────────────────────
+  var openTab = (currentMode !== 'default' && cfg.tabs.find(function(t){return t.key===currentMode;}))
+    ? currentMode : 'tag';
+  var openBtn = document.getElementById('etab-' + openTab) || document.getElementById('etab-tag');
+  switchEditTab(openTab, openBtn);
 
   document.getElementById('edit-overlay').classList.add('open');
   setTimeout(function() {
-    var firstInput = document.querySelector('#epane-tag input:not([readonly])') || document.getElementById('edit-tag');
-    if (openTab === 'tag' && firstInput) { firstInput.focus(); firstInput.select(); }
+    if (openTab === 'tag') {
+      var fi = document.querySelector('#epane-tag input:not([readonly])');
+      if (fi) { fi.focus(); fi.select(); }
+    }
   }, 80);
+}
+
+// Build HTML for a single condition pane based on tab config
+function buildCondPane(tab, d, condData) {
+  var html = '<div style="padding:4px 0 8px;font-size:11px;color:#888;margin-bottom:8px">';
+  html += tab.label + ' — input nilai, level ditentukan otomatis dari scale</div>';
+
+  tab.fields.forEach(function(f) {
+    var val = condData[f.key] !== undefined ? condData[f.key] : (d[f.key] || d[f.key + '_value'] || '');
+    var isCat = f.type === 'categorical' || f.op === 'category';
+    html += '<div class="cond-row">';
+    html += '<label>' + f.label + (f.unit ? ' (' + f.unit + ')' : '') + '</label>';
+    if (isCat) {
+      // Dropdown of scale labels
+      html += '<select id="edit-field-' + f.key + '" style="flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px" onchange="updateEditFieldBadge(&quot;' + tab.key + '&quot;)">';
+      html += '<option value="">— Pilih —</option>';
+      tab.scale.forEach(function(s) {
+        html += '<option value="' + s.value + '"' + (String(val) === String(s.value) ? ' selected' : '') + '>' + s.label + '</option>';
+      });
+      html += '</select>';
+    } else {
+      html += '<input type="number" id="edit-field-' + f.key + '" value="' + (val||'') + '" step="0.001" min="0" placeholder="0"';
+      html += ' style="width:120px;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px"';
+      html += ' oninput="updateEditFieldBadge(&quot;\' + tab.key + \'&quot;)">';
+    }
+    html += '</div>';
+  });
+
+  // Level badge
+  html += '<div class="cond-row" style="margin-top:8px">';
+  html += '<label>Level</label>';
+  html += '<span id="edit-badge-' + tab.key + '" class="lv-badge empty">—</span>';
+  html += '</div>';
+  return html;
+}
+
+// Update level badge when field value changes
+function updateEditFieldBadge(tabKey) {
+  var cfg = getActiveConfig();
+  var tab = cfg.tabs.find(function(t){ return t.key === tabKey; });
+  if (!tab) return;
+  var entries = tab.fields.map(function(f) {
+    var el = document.getElementById('edit-field-' + f.key);
+    if (!el) return null;
+    return resolveColorForField(f, el.value, tab.scale);
+  });
+  var worst = getWorstScaleEntry(entries, tab.scale);
+  var badge = document.getElementById('edit-badge-' + tabKey);
+  if (badge) {
+    if (worst.entry) {
+      badge.style.background = worst.entry.color + '22';
+      badge.style.color = worst.entry.color;
+      badge.className = 'lv-badge';
+      badge.textContent = worst.entry.label;
+    } else {
+      badge.className = 'lv-badge empty';
+      badge.textContent = '—';
+    }
+  }
 }
 
 function closeEdit() {
@@ -2764,7 +2773,7 @@ function saveEdit() {
   var newType = document.getElementById('edit-type-custom').value.trim()
                 || document.getElementById('edit-type').value;
 
-  // Multi-tag for pipes
+  // Tag
   var isPipe = isPipeType(newType);
   var newTag;
   if (isPipe) {
@@ -2774,7 +2783,6 @@ function saveEdit() {
       if (!pipeTags.length) { alert('Minimal satu tag harus diisi'); return; }
       newTag = pipeTags.join(' | ');
     } else {
-      // UI not switched yet — use single tag field
       newTag = document.getElementById('edit-tag').value.trim();
       if (!newTag) { alert('Tag tidak boleh kosong'); return; }
     }
@@ -2786,7 +2794,7 @@ function saveEdit() {
   var g      = editTarget.g;
   var oldTag = editTarget.oldTag;
 
-  // Update ONLY this specific g element
+  // Update SVG element
   g.setAttribute('data-tag', newTag);
   var tip = g.getAttribute('data-tip') || '';
   if (tip.match(/^Tag: /m))  tip = tip.replace(/^Tag: .*/m,  'Tag: '  + newTag);
@@ -2796,62 +2804,62 @@ function saveEdit() {
     else tip = 'Type: ' + newType + '\n' + tip;
   }
   g.setAttribute('data-tip', tip);
-
-  // Update SVG text label inside this g if it shows old tag
-  g.querySelectorAll('foreignObject div').forEach(function(d) {
-    if (d.children.length === 0 && d.textContent.trim() === oldTag) d.textContent = newTag;
+  g.querySelectorAll('foreignObject div').forEach(function(div) {
+    if (div.children.length === 0 && div.textContent.trim() === oldTag) div.textContent = newTag;
   });
-  // Check next sibling for label
   var next = g.nextElementSibling;
   if (next && !next.hasAttribute('data-tag')) {
-    next.querySelectorAll('foreignObject div').forEach(function(d) {
-      if (d.children.length === 0 && d.textContent.trim() === oldTag) d.textContent = newTag;
+    next.querySelectorAll('foreignObject div').forEach(function(div) {
+      if (div.children.length === 0 && div.textContent.trim() === oldTag) div.textContent = newTag;
     });
   }
 
-  // Update BEST_TIPS
-  var bt = BEST_TIPS[oldTag] || tip;
-  bt = bt.replace(/^Tag: .*/m, 'Tag: ' + newTag);
-  if (newType) {
-    if (bt.match(/^Type: /m)) bt = bt.replace(/^Type: .*/m, 'Type: ' + newType);
-    else bt = 'Type: ' + newType + '\n' + bt;
-  }
-  BEST_TIPS[newTag] = bt;
+  BEST_TIPS[newTag] = tip;
 
-  // Update EQUIP_LIST — replace old entry or add new one
   var eqIdx = EQUIP_LIST.findIndex(function(e) { return e.tag === oldTag; });
-  if (eqIdx >= 0) {
-    EQUIP_LIST[eqIdx].tag  = newTag;
-    if (newType) EQUIP_LIST[eqIdx].type = newType;
-  } else {
-    EQUIP_LIST.push({ tag: newTag, type: newType || '', status: '', color: '' });
-  }
+  if (eqIdx >= 0) { EQUIP_LIST[eqIdx].tag = newTag; if (newType) EQUIP_LIST[eqIdx].type = newType; }
+  else EQUIP_LIST.push({ tag: newTag, type: newType || '', status: '', color: '' });
   if (oldTag !== newTag) {
     var dupIdx = EQUIP_LIST.findIndex(function(e) { return e.tag === oldTag; });
     if (dupIdx >= 0) EQUIP_LIST.splice(dupIdx, 1);
   }
 
-  // ── Read condition values from modal tabs ──────────────────────────────
-  var vLv   = (COLOR_SCALES.visual[selVisualVal - 1] || {}).label || '';
-  var vNotes = (document.getElementById('edit-visual-notes')||{}).value || '';
-  var corrRate  = parseFloat((document.getElementById('edit-corr-rate')||{}).value)||0;
-  var thickness = parseFloat((document.getElementById('edit-thickness')||{}).value)||0;
-  var corrLv  = getLvFromCorrosion(corrRate, thickness);
-  var rlVal   = parseFloat((document.getElementById('edit-rl-value')||{}).value)||0;
-  var rlLv    = getLvFromRL(rlVal);
-
-  // ── Update COND for all tags (handles pipe multi-tag) ─────────────────
+  // ── Read dynamic field values from panes ──────────────────────────────
+  var cfg = getActiveConfig();
   var allNewTags = newTag.split(' | ').map(function(t){return t.trim();}).filter(Boolean);
+
   allNewTags.forEach(function(t) {
-    if (COND[oldTag] && oldTag !== t) { COND[t] = COND[oldTag]; delete COND[oldTag]; }
-    if (!COND[t]) COND[t] = { tag:t, type:newType||'', visual_level:'', visual_notes:'', corrosion_level:'', corrosion_rate:0, thickness:0, rl_value:0, rl_level:'' };
+    if (COND[oldTag] && oldTag !== t) { COND[t] = JSON.parse(JSON.stringify(COND[oldTag])); delete COND[oldTag]; }
+    if (!COND[t]) COND[t] = { tag: t, type: newType||'', data: {} };
     var e = COND[t];
     e.tag = t;
     if (newType) e.type = newType;
-    if (selVisualVal) { e.visual_level = vLv; e.visual_value = selVisualVal; }
-    e.visual_notes = vNotes;
-    if (corrRate || thickness) { e.corrosion_rate = corrRate; e.thickness = thickness; e.corrosion_level = corrLv; }
-    if (rlVal) { e.rl_value = rlVal; e.rl_level = rlLv; }
+    if (!e.data) e.data = {};
+
+    // Read each tab's fields
+    cfg.tabs.forEach(function(tab) {
+      tab.fields.forEach(function(f) {
+        var el = document.getElementById('edit-field-' + f.key);
+        if (!el) return;
+        var val = f.type === 'categorical' ? el.value : (parseFloat(el.value) || 0);
+        e.data[f.key] = val;
+        // Also keep legacy fields for backward compat
+        if (f.key === 'visual_value') { e.visual_value = val; e.visual_level = (tab.scale[val-1]||{}).label||''; }
+        if (f.key === 'corrosion_rate') e.corrosion_rate = val;
+        if (f.key === 'thickness') e.thickness = val;
+        if (f.key === 'rl_value') e.rl_value = val;
+      });
+      // Compute level for this tab
+      var entries = tab.fields.map(function(f) {
+        return resolveColorForField(f, e.data[f.key], tab.scale);
+      });
+      var worst = getWorstScaleEntry(entries, tab.scale);
+      e.data[tab.key + '_level'] = worst.entry ? worst.entry.label : '';
+      // Legacy level fields
+      if (tab.key === 'visual') e.visual_level = e.data[tab.key + '_level'];
+      if (tab.key === 'corrosion') e.corrosion_level = e.data[tab.key + '_level'];
+      if (tab.key === 'rl') e.rl_level = e.data[tab.key + '_level'];
+    });
   });
 
   applyColors();
@@ -2867,6 +2875,7 @@ function saveEdit() {
   }
   closeEdit();
 }
+
 
 // Refresh type dropdowns (edit modal + filter) with all known types
 function refreshTypeDropdowns() {
