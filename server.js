@@ -282,9 +282,22 @@ app.post('/api/pfds', async (req, res) => {
         name=EXCLUDED.name, svg_content=EXCLUDED.svg_content,
         viewbox=EXCLUDED.viewbox, updated_at=NOW()
       RETURNING id, name, viewbox, is_default, created_at, updated_at
-    `, [id, name, svg_content, viewbox || '-510 -970 4700 2930']);
+    `, [id, name, svg_content, viewbox || '0 0 1100 600']);
     res.json(result.rows[0]);
   } catch (err) { console.error(err); res.status(500).json({ error: err.message }); }
+});
+
+// Update viewbox only (untuk fix PFD lama yang viewbox-nya salah)
+app.patch('/api/pfds/:id/viewbox', async (req, res) => {
+  try {
+    const { viewbox } = req.body;
+    if (!viewbox) return res.status(400).json({ error: 'viewbox required' });
+    await pool.query(
+      'UPDATE pfds SET viewbox=$1, updated_at=NOW() WHERE id=$2',
+      [viewbox, req.params.id]
+    );
+    res.json({ updated: true, viewbox });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // Delete PFD (only non-default)

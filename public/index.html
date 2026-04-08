@@ -2293,16 +2293,41 @@ async function onPFDChange(pfdId) {
         else inner.innerHTML = pfdData.svg_content;
       }
 
-      // Parse viewbox
-if (pfdData.viewbox) {
-  var vbParts = pfdData.viewbox.split(/\s+/).map(Number);
-  if (vbParts.length === 4 && !vbParts.some(isNaN)) {
-    vbX = vbParts[0]; vbY = vbParts[1]; vbW = vbParts[2]; vbH = vbParts[3];
-  }
-} else {
-  // Fallback: gunakan dimensi wajar untuk draw.io SVG
-  vbX = 0; vbY = 0; vbW = 1100; vbH = 600;
-}
+      // Parse viewbox — coba dari DB dulu, lalu dari SVG langsung, lalu fallback
+      var vbSet = false;
+      if (pfdData.viewbox) {
+        var vbParts = pfdData.viewbox.split(/\s+/).map(Number);
+        // Validasi: jangan pakai nilai default lama yang salah (-510 -970 ...)
+        var isOldDefault = (pfdData.viewbox === '-510 -970 4700 2930');
+        if (vbParts.length === 4 && !vbParts.some(isNaN) && !isOldDefault) {
+          vbX = vbParts[0]; vbY = vbParts[1]; vbW = vbParts[2]; vbH = vbParts[3];
+          vbSet = true;
+        }
+      }
+      if (!vbSet) {
+        // Coba extract viewBox langsung dari SVG content
+        var vbFromSVG = pfdData.svg_content.match(/viewBox\s*=\s*["']([^"']+)["']/i);
+        if (vbFromSVG) {
+          var vbp = vbFromSVG[1].split(/\s+/).map(Number);
+          if (vbp.length === 4 && !vbp.some(isNaN)) {
+            vbX = vbp[0]; vbY = vbp[1]; vbW = vbp[2]; vbH = vbp[3];
+            vbSet = true;
+          }
+        }
+      }
+      if (!vbSet) {
+        // Coba dari width/height SVG (mxGraph style)
+        var wm = pfdData.svg_content.match(/\bwidth="([\d.]+)px"/i);
+        var hm = pfdData.svg_content.match(/\bheight="([\d.]+)px"/i);
+        if (wm && hm) {
+          vbX = 0; vbY = 0; vbW = parseFloat(wm[1]); vbH = parseFloat(hm[1]);
+          vbSet = true;
+        }
+      }
+      if (!vbSet) {
+        // Final fallback
+        vbX = 0; vbY = 0; vbW = 1100; vbH = 600;
+      }
       applyVB();
 
       CURRENT_UNIT = pfdId;
@@ -2442,21 +2467,29 @@ async function savePFD() {
   // Generate ID from name
   var id = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') + '_' + Date.now();
 
-// Dengan ini:
-var viewbox = null;
-var vbMatch = _pfdSVGContent.match(/viewBox\s*=\s*["']([^"']+)["']/i);
-if (vbMatch) {
-  viewbox = vbMatch[1];
-} else {
-  // SVG pakai pixel style (dari draw.io/mxGraph) — extract width/height dari style
-  var wMatch = _pfdSVGContent.match(/min-width:\s*([\d.]+)px/);
-  var hMatch = _pfdSVGContent.match(/min-height:\s*([\d.]+)px/);
-  if (wMatch && hMatch) {
-    viewbox = '0 0 ' + parseFloat(wMatch[1]) + ' ' + parseFloat(hMatch[1]);
+  // Extract viewBox dari SVG
+  var viewbox = null;
+  // 1. Coba dari viewBox attribute (draw.io exported SVG)
+  var vbMatch = _pfdSVGContent.match(/viewBox\s*=\s*["']([^"']+)["']/i);
+  if (vbMatch) {
+    viewbox = vbMatch[1];
   } else {
-    viewbox = '0 0 1100 600'; // safe fallback
+    // 2. Coba dari width/height attribute px (draw.io style)
+    var wAttr = _pfdSVGContent.match(/\bwidth="([\d.]+)px"/i);
+    var hAttr = _pfdSVGContent.match(/\bheight="([\d.]+)px"/i);
+    if (wAttr && hAttr) {
+      viewbox = '0 0 ' + parseFloat(wAttr[1]) + ' ' + parseFloat(hAttr[1]);
+    } else {
+      // 3. Coba dari min-width/min-height di style (mxGraph style)
+      var wStyle = _pfdSVGContent.match(/min-width:\s*([\d.]+)px/);
+      var hStyle = _pfdSVGContent.match(/min-height:\s*([\d.]+)px/);
+      if (wStyle && hStyle) {
+        viewbox = '0 0 ' + parseFloat(wStyle[1]) + ' ' + parseFloat(hStyle[1]);
+      } else {
+        viewbox = '0 0 1100 600'; // safe fallback
+      }
+    }
   }
-}
 
   try {
     if (!API_URL) throw new Error('Tidak ada koneksi ke server — mode offline tidak mendukung upload PFD');
