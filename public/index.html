@@ -1320,6 +1320,12 @@ const BASE_W=4700, BASE_H=2930;
 function applyVB(){
   svg.setAttribute('viewBox',`${vbX} ${vbY} ${vbW} ${vbH}`);
   ziEl.textContent=Math.round(BASE_W/vbW*100)+'%';
+  // Update background rects agar selalu menutupi seluruh area viewBox (penting saat PFD beda koordinat)
+  var pad = Math.max(vbW, vbH) * 2;
+  svg.querySelectorAll(':scope > rect').forEach(function(r){
+    r.setAttribute('x', vbX - pad); r.setAttribute('y', vbY - pad);
+    r.setAttribute('width', vbW + pad*2); r.setAttribute('height', vbH + pad*2);
+  });
 }
 
 // Convert screen pixels to SVG units (accounts for actual container size)
@@ -1399,7 +1405,8 @@ dc.addEventListener('touchmove',e=>{
 dc.addEventListener('touchend',()=>{isPan=false;ltd=null;},{passive:true});
 
 // Toolbar buttons
-document.getElementById('btn-fit').onclick=()=>{vbX=-510;vbY=-970;vbW=BASE_W;vbH=BASE_H;applyVB();};
+let _initVBX=-510,_initVBY=-970,_initVBW=BASE_W,_initVBH=BASE_H;
+document.getElementById('btn-fit').onclick=()=>{vbX=_initVBX;vbY=_initVBY;vbW=_initVBW;vbH=_initVBH;applyVB();};
 document.getElementById('btn-zi').onclick=()=>{
   const cx=vbX+vbW/2,cy=vbY+vbH/2;
   vbW=Math.max(vbW*0.7,BASE_W/12);vbH=Math.max(vbH*0.7,BASE_H/12);
@@ -2295,11 +2302,36 @@ async function onPFDChange(pfdId) {
       } else {
         var srcInner = parsed.getElementById('diagram-inner');
         if (srcInner) {
+          // SVG punya diagram-inner — inject defs dulu lalu isi inner
+          var hostSVG = document.getElementById('diag-svg');
+          var hostDefs = hostSVG.querySelector('defs');
+          if (!hostDefs) { hostDefs = document.createElementNS('http://www.w3.org/2000/svg','defs'); hostSVG.insertBefore(hostDefs, hostSVG.firstChild); }
+          var srcDefs = parsed.querySelector('defs');
+          if (srcDefs) hostDefs.innerHTML += srcDefs.innerHTML;
           inner.innerHTML = srcInner.innerHTML;
         } else {
+          // SVG tidak punya diagram-inner — pindahkan defs ke host SVG, inject semua elemen non-defs ke inner
           var svgEl = parsed.querySelector('svg');
-          if (svgEl) inner.innerHTML = svgEl.innerHTML;
-          else inner.innerHTML = svgRaw;
+          if (svgEl) {
+            var hostSVG = document.getElementById('diag-svg');
+            var hostDefs = hostSVG.querySelector('defs');
+            if (!hostDefs) { hostDefs = document.createElementNS('http://www.w3.org/2000/svg','defs'); hostSVG.insertBefore(hostDefs, hostSVG.firstChild); }
+            // Pindahkan semua <defs> dari SVG sumber ke host defs
+            var srcDefs = svgEl.querySelector('defs');
+            if (srcDefs) hostDefs.innerHTML += srcDefs.innerHTML;
+            // Inject semua child selain <defs> ke diagram-inner
+            var nonDefsHTML = '';
+            svgEl.childNodes.forEach(function(node) {
+              if (node.nodeName.toLowerCase() !== 'defs') {
+                var tmp = document.createElement('div');
+                tmp.appendChild(node.cloneNode(true));
+                nonDefsHTML += tmp.innerHTML;
+              }
+            });
+            inner.innerHTML = nonDefsHTML;
+          } else {
+            inner.innerHTML = svgRaw;
+          }
         }
       }
 
@@ -2338,6 +2370,8 @@ async function onPFDChange(pfdId) {
         // Final fallback
         vbX = 0; vbY = 0; vbW = 1100; vbH = 600;
       }
+      // Simpan initial VB untuk tombol Fit
+      _initVBX=vbX; _initVBY=vbY; _initVBW=vbW; _initVBH=vbH;
       applyVB();
 
       CURRENT_UNIT = pfdId;
