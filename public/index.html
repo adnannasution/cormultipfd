@@ -215,6 +215,8 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#222;height
 /* ── PFD switching loading overlay ── */
 #pfd-switch-overlay{position:fixed;inset:0;background:rgba(15,25,50,.65);z-index:8000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 #pfd-switch-overlay.show{display:flex}
+#debug-panel{position:fixed;bottom:10px;left:10px;right:10px;max-height:220px;overflow-y:auto;background:rgba(0,0,0,.85);color:#0f0;font-size:11px;font-family:monospace;padding:10px;border-radius:8px;z-index:99999;display:none;border:1px solid #0f0}
+#debug-panel.show{display:block}
 .pfd-sw-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
 .pfd-sw-text{color:#fff;font-size:13px;font-weight:600}
 
@@ -335,6 +337,11 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#222;height
 <div id="pfd-switch-overlay">
   <div class="pfd-sw-spinner"></div>
   <div class="pfd-sw-text" id="pfd-sw-text">⏳ Memuat PFD...</div>
+</div>
+
+<div id="debug-panel">
+  <div style="color:#ff0;font-weight:bold;margin-bottom:4px">🔍 DEBUG LOG <span onclick="document.getElementById('debug-panel').classList.remove('show')" style="float:right;cursor:pointer;color:#f66">✕ tutup</span></div>
+  <div id="debug-log"></div>
 </div>
 
 <!-- ─── Toolbar ────────────────────────────────────────── -->
@@ -1314,6 +1321,21 @@ const svg=document.getElementById('diag-svg');
 const ziEl=document.getElementById('zi');
 
 // ViewBox in SVG coordinate space
+// ── Debug panel ───────────────────────────────────────────────────────────
+function dbg(msg) {
+  console.log('[PFD]', msg);
+  var panel = document.getElementById('debug-panel');
+  var log = document.getElementById('debug-log');
+  if (!panel || !log) return;
+  panel.classList.add('show');
+  var line = document.createElement('div');
+  line.style.borderBottom = '1px solid #1a1a1a';
+  line.style.padding = '2px 0';
+  line.textContent = '▶ ' + msg;
+  log.appendChild(line);
+  panel.scrollTop = panel.scrollHeight;
+}
+
 let vbX=-510, vbY=-970, vbW=4700, vbH=2930;
 const BASE_W=4700, BASE_H=2930;
 
@@ -2262,7 +2284,7 @@ async function loadPFDList() {
     // Auto-load first PFD if none selected yet
     if (!CURRENT_UNIT && list.length > 0) {
       sel.value = list[0].id;
-      await onPFDChange(list[0].id);
+      await onPFDChange(list[0].id, true); // true = suppress overlay (dbOverlay sudah handle)
     } else {
       sel.value = CURRENT_UNIT;
     }
@@ -2270,12 +2292,12 @@ async function loadPFDList() {
 }
 
 // ── onPFDChange: switch to another PFD ───────────────────────────────────────
-async function onPFDChange(pfdId) {
+async function onPFDChange(pfdId, suppressOverlay) {
   if (pfdId === CURRENT_UNIT) return;
 
   var overlay = document.getElementById('pfd-switch-overlay');
   var swText  = document.getElementById('pfd-sw-text');
-  overlay.classList.add('show');
+  if (!suppressOverlay) overlay.classList.add('show');
 
   // Determine which PFD to load
   {
@@ -2297,10 +2319,12 @@ async function onPFDChange(pfdId) {
       // Parse SVG content and extract diagram-inner contents
       var parsed = new DOMParser().parseFromString(svgRaw, 'image/svg+xml');
       var parseErr = parsed.querySelector('parsererror');
+      dbg('parseErr: ' + !!parseErr);
       if (parseErr) {
         inner.innerHTML = svgRaw;
       } else {
         var srcInner = parsed.getElementById('diagram-inner');
+        dbg('has diagram-inner: ' + !!srcInner);
         if (srcInner) {
           // SVG punya diagram-inner — inject defs dulu lalu isi inner
           var hostSVG = document.getElementById('diag-svg');
@@ -2321,14 +2345,21 @@ async function onPFDChange(pfdId) {
             if (srcDefs) hostDefs.innerHTML += srcDefs.innerHTML;
             // Inject semua child selain <defs> ke diagram-inner
             var nonDefsHTML = '';
+            var serializer = new XMLSerializer();
             svgEl.childNodes.forEach(function(node) {
               if (node.nodeName.toLowerCase() !== 'defs') {
-                var tmp = document.createElement('div');
-                tmp.appendChild(node.cloneNode(true));
-                nonDefsHTML += tmp.innerHTML;
+                nonDefsHTML += serializer.serializeToString(node);
               }
             });
             inner.innerHTML = nonDefsHTML;
+            // Hapus rect background (width/height 100%) yang menimpa konten
+            inner.querySelectorAll('rect').forEach(function(r) {
+              if (r.getAttribute('width') === '100%' || r.getAttribute('height') === '100%') {
+                dbg('Removing bg rect: ' + r.outerHTML.substring(0,60));
+                r.remove();
+              }
+            });
+            dbg('childCount after inject: ' + inner.childElementCount);
           } else {
             inner.innerHTML = svgRaw;
           }
@@ -2372,6 +2403,7 @@ async function onPFDChange(pfdId) {
       }
       // Simpan initial VB untuk tombol Fit
       _initVBX=vbX; _initVBY=vbY; _initVBW=vbW; _initVBH=vbH;
+      dbg('viewBox: ' + vbX + ' ' + vbY + ' ' + vbW + ' ' + vbH);
       applyVB();
 
       CURRENT_UNIT = pfdId;
@@ -2379,7 +2411,7 @@ async function onPFDChange(pfdId) {
       document.getElementById('btn-pfd-del').style.display = '';
     } catch(err) {
       console.error('Failed to load PFD:', err);
-      overlay.classList.remove('show');
+      if (!suppressOverlay) overlay.classList.remove('show');
       document.getElementById('pfd-dropdown').value = CURRENT_UNIT;
       alert('❌ Gagal memuat PFD: ' + err.message);
       return;
@@ -2393,7 +2425,7 @@ async function onPFDChange(pfdId) {
   var defBtn = document.querySelector('.ctab[data-mode="default"]');
   if (defBtn) setMode('default', defBtn);
 
-  overlay.classList.remove('show');
+  if (!suppressOverlay) overlay.classList.remove('show');
 }
 
 // ── deletePFD: delete current non-default PFD ────────────────────────────────
