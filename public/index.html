@@ -109,36 +109,138 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#222;height
 .sv-btn:hover{background:#0d47a1}
 .fl{color:#2e7d32;font-size:10px;font-weight:600;padding:2px 6px}
 
-/* ── Upload panel ── */
-.upload-panel{background:#f8faff;border:2px dashed #b3c8f5;border-radius:8px;padding:18px 22px;margin-bottom:14px}
-.upload-panel h3{font-size:12px;font-weight:700;color:#1565c0;margin-bottom:8px}
+/* ── Loading overlay ── */
+#db-loading-overlay{position:fixed;inset:0;background:rgba(15,25,50,.72);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .3s}
+#db-loading-overlay.hide{opacity:0;pointer-events:none}
+.dbl-spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dbl-text{color:#fff;font-size:13px;font-weight:600;letter-spacing:.3px}
+.upload-panel{background:#f8faff;border:2px dashed #b3c8f5;border-radius:10px;padding:18px 20px;margin-bottom:14px}
+.up-main-zone{display:flex;align-items:center;gap:14px;background:#fff;border:1.5px solid #d0e2ff;border-radius:10px;padding:14px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(21,101,192,.06)}
+.up-main-icon{font-size:28px;flex-shrink:0}
+.up-main-text{flex:1;min-width:0}
+.up-main-text strong{display:block;font-size:12px;font-weight:700;color:#1a1a2e;margin-bottom:2px}
+.up-main-text span{font-size:10px;color:#6b7280}
+.up-main-btn{flex-shrink:0;padding:8px 18px;background:linear-gradient(135deg,#1565c0,#1e88e5);color:#fff;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 2px 8px rgba(21,101,192,.25);transition:all .15s;display:flex;align-items:center;gap:6px}
+.up-main-btn:hover{background:linear-gradient(135deg,#0d47a1,#1565c0);box-shadow:0 4px 12px rgba(21,101,192,.35);transform:translateY(-1px)}
+.up-status-bar{padding:8px 14px;border-radius:7px;font-size:11px;font-weight:600;margin-bottom:10px;align-items:center;gap:8px}
+.up-status-bar.up-status-loading{background:#f0f4ff;color:#1565c0;border:1px solid #c8d8f5}
+.up-status-bar.up-status-success{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+.up-status-bar.up-status-error{background:#ffebee;color:#b71c1c;border:1px solid #ef9a9a}
+.up-divider{display:flex;align-items:center;gap:10px;margin:14px 0 12px;font-size:10px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.up-divider::before,.up-divider::after{content:'';flex:1;height:1px;background:#e2e8f0}
 .upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.upload-slot{background:#fff;border:1px solid #d0d5dd;border-radius:6px;padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s;position:relative}
-.upload-slot:hover{border-color:#1565c0;background:#f0f4ff}
+.upload-slot-wrap{display:flex;flex-direction:column;}
+.upload-slot{background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;position:relative}
+.upload-slot:hover{border-color:#1565c0;background:#f0f4ff;transform:translateY(-1px);box-shadow:0 3px 10px rgba(21,101,192,.1)}
 .upload-slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.upload-slot .us-icon{font-size:20px;flex-shrink:0}
-.upload-slot .us-text{font-size:11px}
-.upload-slot .us-text strong{display:block;color:#333;font-size:12px}
-.upload-slot .us-text span{color:#888}
-.upload-ok{color:#2e7d32;font-size:10px;font-weight:600;margin-top:4px}
-.upload-err{color:#b71c1c;font-size:10px;font-weight:600;margin-top:4px}
+.upload-slot .us-icon{font-size:22px;flex-shrink:0}
+.upload-slot .us-text{font-size:11px;min-width:0}
+.upload-slot .us-text strong{display:block;color:#1a1a2e;font-size:12px;font-weight:700;margin-bottom:1px}
+.upload-slot .us-text span{color:#9ca3af;font-size:10px}
+.up-slot-btn{display:inline-block;margin-top:5px;padding:3px 10px;background:#f0f4ff;color:#1565c0;border-radius:5px;font-size:10px;font-weight:700;border:1px solid #c8d8f5}
+.upload-slot:hover .up-slot-btn{background:#1565c0;color:#fff;border-color:#1565c0}
+.upload-ok{color:#2e7d32;font-size:10px;font-weight:700;padding:2px 0;margin-top:2px}
+.upload-err{color:#b71c1c;font-size:10px;font-weight:700;margin-top:4px}
+.up-footer-note{margin-top:12px;font-size:10px;color:#9ca3af;text-align:center;padding-top:10px;border-top:1px solid #e8edf5}
+
+/* ── Label Edit Modal ── */
+#lbl-edit-overlay{position:fixed;inset:0;background:rgba(10,20,50,.5);z-index:3000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(2px)}
+#lbl-edit-overlay.open{opacity:1;pointer-events:all}
+#lbl-edit-box{background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.22),0 4px 16px rgba(21,101,192,.08);width:400px;max-width:95vw;padding:0;transform:translateY(16px) scale(.98);transition:transform .22s cubic-bezier(.34,1.56,.64,1),opacity .2s;overflow:hidden}
+#lbl-edit-overlay.open #lbl-edit-box{transform:translateY(0) scale(1)}
+.leh{padding:14px 18px;background:linear-gradient(135deg,#1565c0 0%,#1e88e5 100%);display:flex;align-items:center;gap:10px}
+.leh-icon{width:32px;height:32px;background:rgba(255,255,255,.18);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.leh h3{font-size:13px;font-weight:700;color:#fff;flex:1;margin:0;letter-spacing:.2px}
+.leh .x-btn{background:rgba(255,255,255,.15)!important;border-color:rgba(255,255,255,.25)!important;color:#fff!important;width:24px;height:24px;font-size:12px}
+.leh .x-btn:hover{background:rgba(255,255,255,.3)!important}
+.leb{padding:20px 20px 16px}
+.leb-field{margin-bottom:14px}
+.leb-field:last-child{margin-bottom:0}
+.leb-field label{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px}
+.leb-field label .lf-icon{font-size:12px;opacity:.7}
+.leb-field input{width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:700;color:#1a1a2e;outline:none;box-sizing:border-box;transition:all .15s;background:#fafbfc}
+.leb-field input.sub-input{font-weight:500;font-size:12px;color:#374151;background:#fafbfc}
+.leb-field input::placeholder{color:#c4c9d4;font-weight:400}
+.leb-field input:focus{border-color:#1565c0;box-shadow:0 0 0 3px rgba(21,101,192,.1);background:#fff}
+.leb-field.hidden{display:none}
+.leb-divider{height:1px;background:linear-gradient(90deg,transparent,#e8edf5,transparent);margin:4px 0 14px}
+.lef{padding:12px 20px 16px;display:flex;gap:8px;justify-content:flex-end;background:#f8faff;border-top:1px solid #eef2ff}
+.lef-cancel{padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid #e2e8f0;background:#fff;color:#6b7280;transition:all .15s}
+.lef-cancel:hover{background:#f3f4f6;border-color:#d1d5db;color:#374151}
+.lef-save{padding:8px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,#1565c0,#1e88e5);color:#fff;display:flex;align-items:center;gap:6px;transition:all .15s;box-shadow:0 2px 8px rgba(21,101,192,.3)}
+.lef-save:hover{background:linear-gradient(135deg,#0d47a1,#1565c0);box-shadow:0 4px 12px rgba(21,101,192,.4);transform:translateY(-1px)}
+/* ── PFD Selector ── */
+.pfd-sel-wrap{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border-radius:8px;padding:4px 8px;border:1px solid rgba(255,255,255,.2)}
+.pfd-sel-label{font-size:9px;color:rgba(255,255,255,.7);font-weight:700;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.pfd-dropdown{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:5px;padding:3px 24px 3px 8px;font-size:11px;font-weight:600;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;min-width:120px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='rgba(255,255,255,0.8)'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center}
+.pfd-dropdown:focus{border-color:rgba(255,255,255,.5)}
+.pfd-dropdown option{background:#1565c0;color:#fff}
+.btn-pfd-add{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:5px;padding:4px 9px;font-size:11px;cursor:pointer;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;height:26px;transition:all .15s}
+.btn-pfd-add:hover{background:rgba(255,255,255,.28);border-color:rgba(255,255,255,.5)}
+.btn-pfd-del{background:rgba(244,67,54,.3);color:#fff;border:1px solid rgba(244,67,54,.4);border-radius:5px;padding:4px 8px;font-size:11px;cursor:pointer;font-weight:600;height:26px;transition:all .15s;display:none}
+.btn-pfd-del:hover{background:rgba(244,67,54,.5)}
+.btn-pfd-del.show{display:inline-flex;align-items:center;gap:4px}
+
+/* ── PFD Upload Modal ── */
+#pfd-modal-overlay{position:fixed;inset:0;background:rgba(10,20,50,.5);z-index:4000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(2px)}
+#pfd-modal-overlay.open{opacity:1;pointer-events:all}
+#pfd-modal-box{background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.22);width:480px;max-width:96vw;transform:translateY(16px) scale(.98);transition:transform .22s cubic-bezier(.34,1.56,.64,1);overflow:hidden}
+#pfd-modal-overlay.open #pfd-modal-box{transform:translateY(0) scale(1)}
+.pfd-mhdr{padding:14px 18px;background:linear-gradient(135deg,#1565c0,#1e88e5);display:flex;align-items:center;gap:10px}
+.pfd-mhdr-icon{width:32px;height:32px;background:rgba(255,255,255,.18);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.pfd-mhdr h3{font-size:13px;font-weight:700;color:#fff;flex:1;margin:0}
+.pfd-mbody{padding:20px}
+.pfd-field{margin-bottom:14px}
+.pfd-field label{display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.pfd-field input[type=text]{width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;transition:all .15s;box-sizing:border-box}
+.pfd-field input[type=text]:focus{border-color:#1565c0;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+.pfd-dropzone{border:2px dashed #b3c8f5;border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .15s;position:relative;background:#f8faff}
+.pfd-dropzone:hover{border-color:#1565c0;background:#f0f4ff}
+.pfd-dropzone.has-file{border-color:#2e7d32;background:#f1f8e9}
+.pfd-dropzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.pfd-dropzone-icon{font-size:28px;margin-bottom:6px}
+.pfd-dropzone-text{font-size:12px;color:#6b7280;font-weight:500}
+.pfd-dropzone-hint{font-size:10px;color:#9ca3af;margin-top:4px}
+.pfd-mfoot{padding:12px 18px 16px;display:flex;gap:8px;justify-content:flex-end;background:#f8faff;border-top:1px solid #eef2ff}
+.pfd-cancel{padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid #e2e8f0;background:#fff;color:#6b7280}
+.pfd-save{padding:8px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,#1565c0,#1e88e5);color:#fff;box-shadow:0 2px 8px rgba(21,101,192,.3)}
+.pfd-save:hover{background:linear-gradient(135deg,#0d47a1,#1565c0)}
+.pfd-save:disabled{opacity:.5;cursor:not-allowed}
+.pfd-status{padding:8px 12px;border-radius:7px;font-size:11px;font-weight:600;margin-top:10px;display:none}
+.pfd-status.loading{display:block;background:#f0f4ff;color:#1565c0;border:1px solid #c8d8f5}
+.pfd-status.success{display:block;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}
+.pfd-status.error{display:block;background:#ffebee;color:#b71c1c;border:1px solid #ef9a9a}
+
+/* ── PFD switching loading overlay ── */
+#pfd-switch-overlay{position:fixed;inset:0;background:rgba(15,25,50,.65);z-index:8000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+#pfd-switch-overlay.show{display:flex}
+.pfd-sw-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+.pfd-sw-text{color:#fff;font-size:13px;font-weight:600}
 
 /* ── Edit Tag Modal ── */
-.edit-overlay{position:fixed;inset:0;background:rgba(10,20,50,.5);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .18s}
+.edit-overlay{position:fixed;inset:0;background:rgba(10,20,50,.5);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(2px)}
 .edit-overlay.open{opacity:1;pointer-events:all}
-.edit-box{background:#fff;border-radius:10px;box-shadow:0 16px 50px rgba(0,0,0,.25);width:480px;max-width:95vw;max-height:90vh;padding:0;transform:translateY(12px);transition:transform .18s;display:flex;flex-direction:column;overflow:hidden}
-.edit-overlay.open .edit-box{transform:translateY(0)}
-.edit-hdr{flex-shrink:0;padding:12px 18px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px}
-.edit-hdr h3{font-size:13px;font-weight:700;color:#1a1a2e;flex:1;margin:0}
+.edit-box{background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.2),0 4px 16px rgba(21,101,192,.06);width:500px;max-width:96vw;max-height:92vh;padding:0;transform:translateY(16px) scale(.98);transition:transform .22s cubic-bezier(.34,1.56,.64,1);display:flex;flex-direction:column;overflow:hidden}
+.edit-overlay.open .edit-box{transform:translateY(0) scale(1)}
+.edit-hdr{flex-shrink:0;padding:14px 18px;background:linear-gradient(135deg,#1a1a2e 0%,#1e2a45 100%);display:flex;align-items:center;gap:10px}
+.edit-hdr-icon{width:32px;height:32px;background:rgba(255,255,255,.12);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.edit-hdr h3{font-size:13px;font-weight:700;color:#fff;flex:1;margin:0;letter-spacing:.2px}
+.edit-hdr .x-btn{background:rgba(255,255,255,.12)!important;border-color:rgba(255,255,255,.2)!important;color:#fff!important;width:24px;height:24px;font-size:12px}
+.edit-hdr .x-btn:hover{background:rgba(255,255,255,.25)!important}
 .edit-body{padding:16px 18px;flex:1;overflow-y:auto}
-.edit-row{margin-bottom:12px}
-.edit-row label{display:block;font-size:10px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
-.edit-row input,.edit-row select{width:100%;padding:8px 10px;border:1.5px solid #d0d5dd;border-radius:6px;font-size:12px;outline:none;transition:border-color .15s;box-sizing:border-box}
-.edit-row input:focus,.edit-row select:focus{border-color:#1565c0;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
-.edit-row input[readonly]{background:#f5f5f5;color:#999;cursor:default}
-.edit-foot{padding:10px 18px 14px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid #f0f0f0;flex-shrink:0}
-.edit-foot button{padding:7px 18px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s}
-.edit-cancel{background:#f5f5f5;color:#666;border-color:#d0d5dd}
+.edit-row{margin-bottom:14px}
+.edit-row label{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.edit-row input,.edit-row select{width:100%;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;outline:none;transition:all .15s;box-sizing:border-box;background:#fafbfc;color:#1a1a2e}
+.edit-row input:focus,.edit-row select:focus{border-color:#1565c0;box-shadow:0 0 0 3px rgba(21,101,192,.1);background:#fff}
+.edit-row input[readonly]{background:#f3f4f6;color:#9ca3af;cursor:default;border-color:#e5e7eb}
+.edit-info{font-size:10px;color:#9ca3af;margin-top:4px;font-style:italic}
+.edit-foot{padding:12px 18px 16px;display:flex;gap:8px;justify-content:flex-end;background:#f8faff;border-top:1px solid #eef2ff;flex-shrink:0}
+.edit-foot button{padding:8px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .15s}
+.edit-cancel{background:#fff;color:#6b7280;border-color:#e2e8f0}
+.edit-cancel:hover{background:#f3f4f6;border-color:#d1d5db;color:#374151}
+.edit-save{background:linear-gradient(135deg,#1565c0,#1e88e5)!important;color:#fff!important;border:none!important;box-shadow:0 2px 8px rgba(21,101,192,.3)}
+.edit-save:hover{background:linear-gradient(135deg,#0d47a1,#1565c0)!important;box-shadow:0 4px 12px rgba(21,101,192,.4);transform:translateY(-1px)}
 .pipe-tag-row{display:flex;gap:6px;align-items:center;}
 .pipe-tag-row input{flex:1;padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;}
 .pipe-tag-row button{background:none;border:none;color:#f44336;cursor:pointer;font-size:16px;padding:0 4px;line-height:1;}
@@ -156,12 +258,12 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#222;height
 .vis-btn.sel-Moderate{background:#e3f2fd;border-color:#2196f3;color:#1565c0;}
 .vis-btn.sel-High{background:#fff3e0;border-color:#ff9800;color:#e65100;}
 .vis-btn.sel-Severe{background:#ffebee;border-color:#f44336;color:#c62828;}
-.lv-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;}
-.lv-badge.Low{background:#e8f5e9;color:#2e7d32;}
-.lv-badge.Moderate{background:#e3f2fd;color:#1565c0;}
-.lv-badge.High{background:#fff3e0;color:#e65100;}
-.lv-badge.Severe{background:#ffebee;color:#c62828;}
-.lv-badge.empty{background:#f5f5f5;color:#aaa;}
+.lv-badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:10px;font-weight:700;border:1.5px solid transparent;min-width:70px;text-align:center;}
+.lv-badge.Low{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7;}
+.lv-badge.Moderate{background:#e3f2fd;color:#1565c0;border-color:#90caf9;}
+.lv-badge.High{background:#fff3e0;color:#e65100;border-color:#ffcc80;}
+.lv-badge.Severe{background:#ffebee;color:#c62828;border-color:#ef9a9a;}
+.lv-badge.empty{background:#f5f5f5;color:#aaa;border-color:#e0e0e0;}
 .scale-tab{background:none;border:1px solid #ddd;padding:3px 8px;font-size:10px;cursor:pointer;border-radius:4px;color:#666;}
 .scale-tab.active{background:#1565c0;color:#fff;border-color:#1565c0;}
 .scale-row{display:flex;align-items:center;gap:6px;padding:4px 6px;background:#f8f9fb;border-radius:6px;}
@@ -170,9 +272,10 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#222;height
 .scale-row input[type=color]{width:32px;height:24px;border:none;cursor:pointer;border-radius:4px;padding:0;}
 .scale-row .op-label{font-size:10px;color:#888;width:20px;text-align:center;}
 .scale-row button{background:none;border:none;color:#f44336;cursor:pointer;font-size:14px;padding:0 2px;}
-.edit-cancel:hover{background:#eee}
-.edit-save{background:#1565c0;color:#fff;border-color:#1565c0}
-.edit-save:hover{background:#0d47a1}
+.etab-bar{display:flex;border-bottom:2px solid #e8edf5;margin:0 0 0 0;gap:0;flex-shrink:0;padding:0 16px;background:#f8faff;}
+.etab{background:none;border:none;padding:8px 14px;font-size:11px;font-weight:600;color:#9ca3af;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;border-radius:0;transition:all .15s;}
+.etab:hover{color:#1565c0;background:rgba(21,101,192,.04);}
+.etab.active{color:#1565c0;border-bottom-color:#1565c0;background:transparent;}.edit-save:hover{background:#0d47a1}
 .edit-info{font-size:10px;color:#aaa;margin-top:2px;font-style:italic}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script></head>
@@ -183,17 +286,56 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#222;height
   <div class="hdr-icon">🏭</div>
   <div class="hdr-text">
     <h1>CORRMAP - CORROSION &amp; MAPING</h1>
-    <p id="hdr-subtitle">CDU #11 Revamping — Process Flow Diagram</p>
+    <p id="hdr-subtitle">CDU #11 — Process Flow Diagram</p>
+  </div>
+  <div class="pfd-sel-wrap">
+    <span class="pfd-sel-label">📋 PFD</span>
+    <select class="pfd-dropdown" id="pfd-dropdown" onchange="onPFDChange(this.value)" title="Pilih PFD">
+      <option value="__default__">CDU #11 (Default)</option>
+    </select>
+    <button class="btn-pfd-add" onclick="openPFDModal()" title="Tambah PFD baru">＋ PFD</button>
+    <button class="btn-pfd-del" id="btn-pfd-del" onclick="deletePFD()" title="Hapus PFD ini">🗑</button>
   </div>
   <div class="hdr-right">
-    <select id="pfd-select" onchange="switchPFD(this.value)" style="padding:4px 10px;border:1px solid rgba(255,255,255,.3);border-radius:5px;background:rgba(255,255,255,.15);color:#fff;font-size:11px;font-weight:600;cursor:pointer;outline:none;min-width:140px">
-      <option value="">— Pilih PFD —</option>
-    </select>
-    <button class="btn" onclick="openPFDManager()" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)">📂 Kelola PFD</button>
-    <button class="btn warn" onclick="downloadTemplate()">⬇ Template Excel</button>
-    <button class="btn success" onclick="openModal('upload')">⬆ Upload Data</button>
     <button class="btn primary" onclick="openModal('list')">📦 Equipment</button>
   </div>
+</div>
+
+<!-- ─── PFD Upload Modal ──────────────────────────────── -->
+<div id="pfd-modal-overlay" onclick="if(event.target===this)closePFDModal()">
+  <div id="pfd-modal-box">
+    <div class="pfd-mhdr">
+      <div class="pfd-mhdr-icon">🗺️</div>
+      <h3>Tambah / Update PFD</h3>
+      <button class="x-btn" onclick="closePFDModal()">✕</button>
+    </div>
+    <div class="pfd-mbody">
+      <div class="pfd-field">
+        <label>Nama PFD</label>
+        <input type="text" id="pfd-name-input" placeholder="Contoh: CDU #12, VDU, HVU..." autocomplete="off">
+      </div>
+      <div class="pfd-field">
+        <label>File SVG</label>
+        <div class="pfd-dropzone" id="pfd-dropzone">
+          <input type="file" id="pfd-file-input" accept=".svg,image/svg+xml" onchange="onPFDFileSelect(this)">
+          <div class="pfd-dropzone-icon" id="pfd-dz-icon">📂</div>
+          <div class="pfd-dropzone-text" id="pfd-dz-text">Klik atau drag SVG ke sini</div>
+          <div class="pfd-dropzone-hint">Format: .svg — pastikan SVG memiliki <g id="diagram-inner"></div>
+        </div>
+      </div>
+      <div class="pfd-status" id="pfd-status"></div>
+    </div>
+    <div class="pfd-mfoot">
+      <button class="pfd-cancel" onclick="closePFDModal()">Batal</button>
+      <button class="pfd-save" id="pfd-save-btn" onclick="savePFD()" disabled>💾 Simpan PFD</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── PFD Switch Loading ────────────────────────────── -->
+<div id="pfd-switch-overlay">
+  <div class="pfd-sw-spinner"></div>
+  <div class="pfd-sw-text" id="pfd-sw-text">⏳ Memuat PFD...</div>
 </div>
 
 <!-- ─── Toolbar ────────────────────────────────────────── -->
@@ -227,6 +369,12 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#222;height
 
 <!-- ─── Legend ─────────────────────────────────────────── -->
 
+
+<!-- ─── DB Loading Overlay ──────────────────────────────── -->
+<div id="db-loading-overlay">
+  <div class="dbl-spinner"></div>
+  <div class="dbl-text">⏳ Memuat data dari database...</div>
+</div>
 
 <!-- ─── Diagram ────────────────────────────────────────── -->
 <div class="diag-wrap">
@@ -884,7 +1032,7 @@ Tag: 186" data-tag="186" data-uid="G0498"><rect x="705.5" y="-688" width="48" he
       <button class="m-tab" data-mt="visual" onclick="switchTab('visual',this)">👁 Visual</button>
       <button class="m-tab" data-mt="corrosion" onclick="switchTab('corrosion',this)">🔬 Corrosion</button>
       <button class="m-tab" data-mt="rl" onclick="switchTab('rl',this)">⏳ Remaining Life</button>
-      <button class="m-tab" data-mt="list" onclick="switchTab('list',this)">📦 Equipment</button>
+      
     </div>
     <div class="m-tbar" id="m-tbar">
       <input class="si" id="msrch" type="text" placeholder="🔍 Cari tag / tipe..." oninput="renderTbl()">
@@ -917,7 +1065,8 @@ Tag: 186" data-tag="186" data-uid="G0498"><rect x="705.5" y="-688" width="48" he
 <div class="edit-overlay" id="edit-overlay">
   <div class="edit-box">
     <div class="edit-hdr">
-      <h3 id="edit-title">✏️ Edit Tag</h3>
+      <div class="edit-hdr-icon">🏷️</div>
+      <h3 id="edit-title">Edit Tag</h3>
       <button class="x-btn" onclick="closeEdit()">✕</button>
     </div>
     <!-- Tab bar -->
@@ -1059,6 +1208,13 @@ const API_URL = (typeof window !== 'undefined' && window.location.protocol !== '
   : null;
 let initDone = false; // flag: DB init load complete
 
+// ── PFD / Unit state ────────────────────────────────────────────────────────
+let CURRENT_UNIT = '__default__'; // current PFD id / unit key
+let DEFAULT_SVG_INNER = ''; // will be captured from embedded SVG at startup
+let DEFAULT_VIEWBOX = '-510 -970 4700 2930';
+let PFD_LIST = []; // list of PFDs from server
+let _pfdSVGContent = null; // raw SVG file content for pending upload
+
 // ── COLOR_SCALES: fully dynamic color config ──────────────────────────────
 // Each scale = array of levels sorted best→worst (last = worst/most severe)
 // operator: '>=' means value >= threshold triggers this level (corr_rate)
@@ -1071,8 +1227,8 @@ function getLvAndColor(scaleKey, val) {
   // Returns { label, color } or null
   var scale = COLOR_SCALES[scaleKey];
   if (!scale || !scale.length) return null;
-  var v = parseFloat(val);
-  if (isNaN(v) || v === 0) return null;
+  var v = parseFloat(String(val).replace(',','.'));
+  if (isNaN(v)) return null;
   var op = scale[0].op;
   var result = null;
   if (op === '>=') {
@@ -1081,7 +1237,9 @@ function getLvAndColor(scaleKey, val) {
       if (v >= scale[i].value) result = scale[i];
     }
   } else {
-    // Lower value = worse (<=): find lowest threshold that val satisfies
+    // Lower value = worse (<=): find TIGHTEST (last) threshold that val satisfies
+    // Scale is sorted best->worst (values descending e.g. 15,10,5,2)
+    // e.g. RL=8: satisfies <=15(Low) AND <=10(Moderate), NOT <=5 → pick Moderate (last match)
     for (var i = 0; i < scale.length; i++) {
       if (v <= scale[i].value) result = scale[i];
     }
@@ -1100,8 +1258,25 @@ function getColorFromVisual(val) {
   return COLOR_SCALES.visual[n - 1] || null;
 }
 function getLvFromCorrRate(val)  { var r = getLvAndColor('corr_rate', val); return r ? r.label : 'Low'; }
-function getLvFromThickness(val) { var r = getLvAndColor('thickness',  val); return r ? r.label : ''; }
-function getLvFromRL(val)        { var r = getLvAndColor('rl',         val); return r ? r.label : ''; }
+function getLvFromThickness(val) {
+  var v = parseFloat(String(val).replace(',','.'));
+  if (isNaN(v) || v <= 0) return '';   // no thickness data
+  var r = getLvAndColor('thickness', v);
+  return r ? r.label : 'Low';          // > 12mm = Low (good condition)
+}
+function getLvFromRL(val) {
+  var v = parseFloat(String(val).replace(',','.'));
+  if (isNaN(v) || v <= 0) return '';   // no RL data
+  // RL: lower value = worse. Scale entries sorted best→worst with DESCENDING threshold values.
+  // Find the TIGHTEST (smallest) threshold that still satisfies v <= threshold.
+  // If v > all thresholds (e.g. v=20 > 15), return 'Low' (safe).
+  var scale = COLOR_SCALES.rl || [];
+  var result = null;
+  for (var i = 0; i < scale.length; i++) {
+    if (v <= scale[i].value) result = scale[i];
+  }
+  return result ? result.label : 'Low'; // > max threshold = Low (safest)
+}
 function getLvFromCorrosion(rate, thickness) {
   var lv1 = getLvFromCorrRate(rate);
   var lv2 = getLvFromThickness(thickness);
@@ -1112,38 +1287,49 @@ function getLvFromCorrosion(rate, thickness) {
   return w1 >= w2 ? lv1 : lv2;
 }
 
-// Get fill color for a tag+mode (used by applyColors)
 function getColorForTag(tag, mode) {
-  var d = COND[tag]; if (!d) return null;
+  var d = COND[tag]; if (!d) return '#9e9e9e'; // gray jika tidak ada data
   if (mode === 'visual') {
     var n = parseInt(d.visual_value) || 0;
-    if (!n) { // fallback: map visual_level label to index
+    if (!n) {
       var labels = COLOR_SCALES.visual.map(function(s){return s.label;});
       n = labels.indexOf(d.visual_level) + 1;
     }
     var entry = COLOR_SCALES.visual[n - 1];
-    return entry ? entry.color : null;
+    // Gray jika visual_level null/kosong
+    if (!entry || (!d.visual_value && !d.visual_level)) return '#9e9e9e';
+    return entry.color;
   }
   if (mode === 'corrosion') {
-    var r = getLvAndColor('corr_rate', d.corrosion_rate);
-    var t = getLvAndColor('thickness',  d.thickness);
-    // worst of the two
+    var cr  = parseFloat(d.corrosion_rate) || 0;
+    var thk = parseFloat(d.thickness) || 0;
+    // Gray jika keduanya null/0
+    if (!cr && !thk) return '#9e9e9e';
+    var r = getLvAndColor('corr_rate', cr);
+    var t = getLvAndColor('thickness', thk);
     var labels2 = COLOR_SCALES.corr_rate.map(function(s){return s.label;});
-    if (!r && !t) return null;
+    // Jika salah satu null, pakai yang ada
+    if (!r && !t) return '#9e9e9e';
     if (!r) return t.color;
     if (!t) return r.color;
     return labels2.indexOf(r.label) >= labels2.indexOf(t.label) ? r.color : t.color;
   }
   if (mode === 'rl') {
-    var rl = getLvAndColor('rl', d.rl_value);
-    return rl ? rl.color : null;
+    var rlV = parseFloat(String(d.rl_value).replace(',','.'));
+    // Gray jika null/0
+    if (!rlV || rlV <= 0) return '#9e9e9e';
+    var rl = getLvAndColor('rl', rlV);
+    if (rl) return rl.color;
+    var lowEntry = COLOR_SCALES.rl[0];
+    return lowEntry ? lowEntry.color : '#9e9e9e';
   }
-  return null;
+  return '#9e9e9e';
 }
 
 // Push ALL current tags from SVG to DB in one bulk call
 async function pushAllTags() {
   if (!API_URL || !initDone) return;
+  const unit = CURRENT_UNIT === '__default__' ? 'cdu11' : CURRENT_UNIT;
   const all = document.querySelectorAll('#diagram-inner g[data-uid][data-tag]');
   const tags = [];
   all.forEach(function(g) {
@@ -1154,7 +1340,7 @@ async function pushAllTags() {
     tip.split('\n').forEach(function(l){ if(l.startsWith('Type: ')) type = l.slice(6); });
     if (uid && tag) tags.push({ uid, tag, type });
   });
-  try { await apiPost('/api/tags/bulk', { tags }); } catch(e) { console.warn('pushAllTags failed:', e); }
+  try { await apiPost('/api/tags/bulk', { unit, tags }); } catch(e) { console.warn('pushAllTags failed:', e); }
 }
 
 async function apiGet(path) {
@@ -1199,6 +1385,65 @@ const TI = {
 //  TEMPLATE DOWNLOAD
 // ══════════════════════════════════════════════════════
 const TMPL_B64 = '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';
+function downloadTemplateSingle(type) {
+  if (typeof XLSX === 'undefined') { alert('SheetJS belum dimuat, coba lagi'); return; }
+  const tags = EQUIP_LIST.length ? EQUIP_LIST.map(e => e.tag) : Object.keys(COND);
+
+  let wsData, sheetName, filename;
+
+  if (type === 'visual') {
+    sheetName = 'Visual Condition';
+    filename  = 'template_visual.xlsx';
+    wsData = [
+      ['CAIS - Template Visual Condition'],
+      ['Tag / Equipment ID', 'Nilai Visual', 'Catatan'],
+      ['', '1=Low, 2=Moderate, 3=High, 4=Severe', 'Opsional'],
+      ...tags.map(t => {
+        const d = COND[t];
+        return [t, d ? (d.visual_value || '') : '', d ? (d.visual_notes || '') : ''];
+      })
+    ];
+  } else if (type === 'corrosion') {
+    sheetName = 'Corrosion';
+    filename  = 'template_corrosion.xlsx';
+    wsData = [
+      ['CAIS - Template Corrosion'],
+      ['Tag / Equipment ID', 'Corr. Rate (mm/yr)', 'Thickness (mm)'],
+      ['', 'Low(>=0.1), Moderate(>=0.3), High(>=0.5), Severe(>=1)', 'Low(<=12), Moderate(<=8), High(<=5), Severe(<=2)'],
+      ...tags.map(t => {
+        const d = COND[t];
+        return [t, d ? (d.corrosion_rate || '') : '', d ? (d.thickness || '') : ''];
+      })
+    ];
+  } else if (type === 'rl') {
+    sheetName = 'Remaining Life';
+    filename  = 'template_remaining_life.xlsx';
+    wsData = [
+      ['CAIS - Template Remaining Life'],
+      ['Tag / Equipment ID', 'Remaining Life (thn)'],
+      ['', 'Low(<=15), Moderate(<=10), High(<=5), Severe(<=2)'],
+      ...tags.map(t => {
+        const d = COND[t];
+        return [t, d ? (d.rl_value || '') : ''];
+      })
+    ];
+  } else if (type === 'equipment') {
+    sheetName = 'Equipment';
+    filename  = 'template_equipment.xlsx';
+    wsData = [
+      ['CAIS - Template Equipment'],
+      ['Tag / Equipment ID', 'Tipe', 'Status'],
+      ['', '', 'Normal / Warning / Monitored / Inactive'],
+      ...EQUIP_LIST.map(e => [e.tag, e.type || '', e.status || ''])
+    ];
+  } else return;
+
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  XLSX.writeFile(wb, filename);
+}
+
 function downloadTemplate() {
   if (typeof XLSX === 'undefined') { alert('SheetJS belum dimuat, coba lagi sebentar'); return; }
 
@@ -1300,107 +1545,157 @@ async function parseXlsx(file, sheetName){
 }
 
 async function handleUpload(type, file){
-  if(!file)return;
-  const sheetMap = {
+  if(!file) return;
+
+  // ── Read file using SheetJS, try named sheet first then sheet[0] ──
+  const sheetNames = {
     equipment: 'Equipment',
     visual: 'Visual Condition',
     corrosion: 'Corrosion',
     rl: 'Remaining Life'
   };
-  const statusEl = document.getElementById(`up-status-${type}`);
-  statusEl.className='upload-ok'; statusEl.textContent='⏳ Membaca file...';
-  try{
-    const rows = await parseXlsx(file, sheetMap[type]);
-    // Find header row (row with 'Tag' in it, skip title+guide rows)
-    let hdrRow = -1, tagCol = -1, lvCol=-1, crCol=-1, thkCol=-1, rlvCol=-1, notCol=-1, typeCol=-1, statusCol=-1;
-    for(let r=0;r<Math.min(5,rows.length);r++){
-      const row = rows[r].map(v=>String(v||'').trim().toLowerCase());
-      const ti = row.findIndex(c=>c==='tag' || c==='tag / equipment id');
-      if(ti>=0){hdrRow=r; tagCol=ti; break;}
+
+  // Show loading in a floating toast (status panel may get re-rendered)
+  const toast = document.createElement('div');
+  toast.id = 'upload-toast-' + type;
+  toast.style.cssText = 'position:fixed;top:70px;right:20px;background:#1565c0;color:#fff;padding:10px 18px;border-radius:10px;font-size:12px;font-weight:600;z-index:99999;box-shadow:0 4px 16px rgba(0,0,0,.3)';
+  toast.textContent = '⏳ Membaca file ' + type + '...';
+  document.body.appendChild(toast);
+
+  try {
+    // Parse xlsx
+    const rows = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const wb = XLSX.read(e.target.result, { type: 'array' });
+          // Try exact sheet name first, then first sheet
+          const ws = wb.Sheets[sheetNames[type]] || wb.Sheets[wb.SheetNames[0]];
+          if (!ws) { reject('Sheet tidak ditemukan di file'); return; }
+          resolve(XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }));
+        } catch(err) { reject(err.message || 'Error parsing file'); }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // ── Find header row: scan first 5 rows for 'Tag' column ──
+    let hdrRow = -1, tagCol = -1;
+    for (let r = 0; r < Math.min(5, rows.length); r++) {
+      const row = rows[r].map(v => String(v||'').trim().toLowerCase());
+      const ti = row.findIndex(c => c === 'tag' || c === 'tag / equipment id');
+      if (ti >= 0) { hdrRow = r; tagCol = ti; break; }
     }
-    if(hdrRow<0){statusEl.className='upload-err';statusEl.textContent='❌ Header "Tag" tidak ditemukan'; return;}
-    const hdr = rows[hdrRow].map(v=>String(v||'').trim().toLowerCase());
-    lvCol   = hdr.findIndex(c=>c.includes('level'));
-    crCol   = hdr.findIndex(c=>c.includes('rate') || c.includes('corr'));
-    thkCol  = hdr.findIndex(c=>c.includes('thick'));
-    rlvCol  = hdr.findIndex(c=>c.includes('remaining') || c.includes('tahun') || c.includes('year'));
-    notCol  = hdr.findIndex(c=>c.includes('catatan') || c.includes('note'));
-    typeCol = hdr.findIndex(c=>c.includes('tipe') || c.includes('type'));
-    statusCol = hdr.findIndex(c=>c.includes('status'));
-    
-    let updated=0, skipped=0;
+    if (hdrRow < 0) {
+      toast.style.background = '#c62828';
+      toast.textContent = '❌ Header "Tag" tidak ditemukan di file';
+      setTimeout(() => toast.remove(), 4000);
+      return;
+    }
+
+    // ── Detect columns by header name ──
+    const hdr = rows[hdrRow].map(v => String(v||'').trim().toLowerCase());
+    const crCol    = hdr.findIndex(c => c.includes('rate') || (c.includes('corr') && !c.includes('level')));
+    const thkCol   = hdr.findIndex(c => c.includes('thick'));
+    const rlvCol   = hdr.findIndex(c => c.includes('remaining') || c.includes('thn') || c.includes('tahun') || c.includes('year') || c.includes('life'));
+    const lvCol    = hdr.findIndex(c => c.includes('level') || c.includes('nilai'));
+    const notCol   = hdr.findIndex(c => c.includes('catatan') || c.includes('note'));
+    const typeCol  = hdr.findIndex(c => c.includes('tipe') || c.includes('type'));
+    const statusCol= hdr.findIndex(c => c.includes('status'));
+
     const VALID_LV = new Set(['Low','Moderate','High','Severe']);
-    
-    for(let r=hdrRow+1;r<rows.length;r++){
+    let updated = 0;
+
+    // ── Process each data row ──
+    for (let r = hdrRow + 1; r < rows.length; r++) {
       const row = rows[r];
       const tag = String(row[tagCol]||'').trim();
-      if(!tag) continue;
-      const lv = String(row[lvCol]||'').trim();
-      
-      if(type==='equipment'){
-        const tp = typeCol>=0 ? String(row[typeCol]||'').trim() : '';
-        const st = statusCol>=0 ? String(row[statusCol]||'').trim() : '';
-        // Update EQUIP_LIST entry or add
-        const idx = EQUIP_LIST.findIndex(e=>e.tag===tag);
-        if(idx>=0){EQUIP_LIST[idx].type=tp||EQUIP_LIST[idx].type; EQUIP_LIST[idx].status=st||EQUIP_LIST[idx].status;}
-        else EQUIP_LIST.push({tag,type:tp,status:st,color:''});
+      if (!tag) continue;
+
+      if (type === 'equipment') {
+        const tp = typeCol  >= 0 ? String(row[typeCol]||'').trim()  : '';
+        const st = statusCol >= 0 ? String(row[statusCol]||'').trim() : '';
+        const idx = EQUIP_LIST.findIndex(e => e.tag === tag);
+        if (idx >= 0) {
+          if (tp) EQUIP_LIST[idx].type   = tp;
+          if (st) EQUIP_LIST[idx].status = st;
+        } else {
+          EQUIP_LIST.push({ tag, type: tp, status: st, color: '' });
+        }
         updated++;
-      } else if(type==='visual'){
-        if(!COND[tag]) COND[tag]={tag,type:'',visual_level:'',visual_notes:'',corrosion_level:'',corrosion_rate:0,thickness:0,rl_value:0,rl_level:''};
-        // Support numeric value (1-4) or label text
-        var rawVal = lvCol>=0 ? String(row[lvCol]||'').trim() : '';
-        var numVal = parseInt(rawVal);
-        if (!isNaN(numVal) && numVal > 0) {
+
+      } else if (type === 'visual') {
+        if (!COND[tag]) COND[tag] = { tag, type:'', visual_level:'', visual_notes:'', corrosion_level:'', corrosion_rate:0, thickness:0, rl_value:0, rl_level:'' };
+        const rawVal = lvCol >= 0 ? String(row[lvCol]||'').trim() : '';
+        const numVal = parseInt(rawVal);
+        if (!isNaN(numVal) && numVal >= 1 && numVal <= 4) {
           COND[tag].visual_value = numVal;
           COND[tag].visual_level = getLvFromVisual(numVal);
         } else if (VALID_LV.has(rawVal)) {
           COND[tag].visual_level = rawVal;
         }
-        if(notCol>=0) COND[tag].visual_notes=String(row[notCol]||'').trim();
+        if (notCol >= 0) COND[tag].visual_notes = String(row[notCol]||'').trim();
         updated++;
-      } else if(type==='corrosion'){
-        if(!COND[tag]) COND[tag]={tag,type:'',visual_level:'',visual_notes:'',corrosion_level:'',corrosion_rate:0,thickness:0,rl_value:0,rl_level:''};
-        var cr  = crCol>=0  ? parseFloat(row[crCol])||0  : 0;
-        var thk = thkCol>=0 ? parseFloat(row[thkCol])||0 : 0;
+
+      } else if (type === 'corrosion') {
+        if (!COND[tag]) COND[tag] = { tag, type:'', visual_level:'', visual_notes:'', corrosion_level:'', corrosion_rate:0, thickness:0, rl_value:0, rl_level:'' };
+        const cr  = crCol  >= 0 ? (parseFloat(String(row[crCol]).replace(',','.'))  || 0) : 0;
+        const thk = thkCol >= 0 ? (parseFloat(String(row[thkCol]).replace(',','.')) || 0) : 0;
         COND[tag].corrosion_rate  = cr;
         COND[tag].thickness       = thk;
         COND[tag].corrosion_level = getLvFromCorrosion(cr, thk);
         updated++;
-      } else if(type==='rl'){
-        if(!COND[tag]) COND[tag]={tag,type:'',visual_level:'',visual_notes:'',corrosion_level:'',corrosion_rate:0,thickness:0,rl_value:0,rl_level:''};
-        var rlv = rlvCol>=0 ? parseFloat(row[rlvCol])||0 : 0;
+
+      } else if (type === 'rl') {
+        if (!COND[tag]) COND[tag] = { tag, type:'', visual_level:'', visual_notes:'', corrosion_level:'', corrosion_rate:0, thickness:0, rl_value:0, rl_level:'' };
+        const rlv = rlvCol >= 0 ? (parseFloat(String(row[rlvCol]).replace(',','.')) || 0) : 0;
         COND[tag].rl_value = rlv;
         COND[tag].rl_level = getLvFromRL(rlv);
         updated++;
       }
     }
-    
-    statusEl.className='upload-ok';
-    statusEl.textContent=`✅ Berhasil: ${updated} baris diperbarui`;
 
-    // Always refresh colors regardless of current mode
+    // ── Update diagram colors ──
     applyColors();
-    renderTbl();
 
-    // Sync all updated COND entries to DB (non-blocking)
-    if (API_URL && type !== 'equipment') {
-      const tags = [];
-      for(let r=hdrRow+1; r<rows.length; r++){
-        const tag = String(rows[r][tagCol]||'').trim();
-        if(tag && COND[tag]) tags.push(tag);
-      }
-      Promise.all(tags.map(tag => apiPost('/api/conditions', COND[tag])))
-        .then(results => {
-          const saved = results.filter(Boolean).length;
-          statusEl.textContent = `✅ Berhasil: ${updated} baris diperbarui, ${saved} tersimpan ke DB`;
-        });
+    // ── Switch diagram mode to match uploaded type ──
+    const modeKey = { visual:'visual', corrosion:'corrosion', rl:'rl' }[type];
+    if (modeKey) {
+      const modeBtn = document.querySelector(`.ctab[data-mode="${modeKey}"]`);
+      if (modeBtn) setMode(modeKey, modeBtn);
     }
 
-  }catch(err){
-    statusEl.className='upload-err';
-    statusEl.textContent=`❌ Error: ${err}`;
+    // ── Switch modal tab so table re-renders with correct colors ──
+    const tabKey = { visual:'visual', corrosion:'corrosion', rl:'rl', equipment:'list' }[type];
+    if (tabKey) {
+      const tabBtn = document.querySelector(`.m-tab[data-mt="${tabKey}"]`);
+      if (tabBtn) switchTab(tabKey, tabBtn);
+    }
+
+    // ── Show success toast ──
+    toast.style.background = '#2e7d32';
+    toast.textContent = `✅ ${type}: ${updated} tag diperbarui`;
+    setTimeout(() => toast.remove(), 3500);
+
+    // ── Sync to DB (non-blocking, tidak mempengaruhi tampilan) ──
+    // HANYA jika API tersedia - tidak mengubah COND, hanya kirim ke server
+    if (API_URL && type !== 'equipment') {
+      const tagsToSync = [];
+      for (let r = hdrRow + 1; r < rows.length; r++) {
+        const tag = String(rows[r][tagCol]||'').trim();
+        if (tag && COND[tag]) tagsToSync.push(tag);
+      }
+      const _u3 = CURRENT_UNIT === '__default__' ? 'cdu11' : CURRENT_UNIT;
+      Promise.all(tagsToSync.map(tag => apiPost('/api/conditions', Object.assign({unit:_u3}, COND[tag]))))
+        .catch(e => console.warn('DB sync error:', e));
+    }
+
+  } catch(err) {
+    toast.style.background = '#c62828';
+    toast.textContent = `❌ Error: ${err}`;
+    setTimeout(() => toast.remove(), 5000);
   }
 }
+
 
 // ══════════════════════════════════════════════════════
 //  COLOR MODE
@@ -1409,20 +1704,16 @@ let currentMode='default';
 const origColors = new Map();
 
 function storeOrig(){
-  origColors.clear();
-  document.querySelectorAll('#diagram-inner g[data-uid]').forEach(g=>{
+  // Key by element reference so tag renames don't break color lookup
+  document.querySelectorAll('#diagram-inner g[data-tag]').forEach(g=>{
     const saved=[];
     g.querySelectorAll('path,rect,ellipse,circle').forEach(s=>{
       var fill   = s.getAttribute('fill');
       var stroke = s.getAttribute('stroke');
       var vis    = s.getAttribute('visibility');
-      // draw.io uses inline style for fill — read it as fallback
-      var styleFill = s.style.fill || null;
-      var styleStroke = s.style.stroke || null;
       // isLine: fill=none means color is in stroke (pipes/lines)
-      var effectiveFill = fill || styleFill;
-      var isLine = (!effectiveFill || effectiveFill==='none') && (stroke||styleStroke) && stroke!=='white' && stroke!=='none' && vis!=='hidden';
-      saved.push({ el:s, fill:fill, stroke:stroke, styleFill:styleFill, styleStroke:styleStroke, isLine:isLine });
+      var isLine = (!fill || fill==='none') && stroke && stroke!=='white' && stroke!=='none' && vis!=='hidden';
+      saved.push({ el:s, fill:fill, stroke:stroke, isLine:isLine });
     });
     origColors.set(g, saved);
   });
@@ -1457,21 +1748,29 @@ function getColorForMode(tag, mode) {
   return getColorForTag(tag, mode);
 }
 
-function applyToMap(){ applyColors(); closeModal(); }
+function applyToMap(){
+  // Save semua COND yang terlihat ke DB
+  if (API_URL) {
+    Object.values(COND).forEach(function(d) {
+      if (d.tag) apiPost('/api/conditions', Object.assign({unit: CURRENT_UNIT === '__default__' ? 'cdu11' : CURRENT_UNIT}, d));
+    });
+  }
+  applyColors();
+  closeModal();
+}
 
 function applyColors(){
-  // Use g[data-tag] for coloring, g[data-uid] for restore (covers untagged elements too)
-  const all=document.querySelectorAll('#diagram-inner g[data-uid]');
+  const all=document.querySelectorAll('#diagram-inner g[data-tag]');
   if(currentMode==='default'){
     all.forEach(g=>{
       const s=origColors.get(g);
       s&&s.forEach(i=>{
         if(i.isLine){
-          i.el.setAttribute('stroke', i.stroke || '#000000');
-          if (i.styleStroke !== null) i.el.style.stroke = i.styleStroke || '';
+          // Default: black lines (original PFD engineering drawing style)
+          i.el.setAttribute('stroke', '#000000');
         } else {
-          if (i.fill !== null) i.el.setAttribute('fill', i.fill);
-          i.el.style.fill = i.styleFill || '';
+          // Default: restore original fill (white for shapes, none for hitbox lines)
+          i.el.setAttribute('fill', i.fill||'none');
         }
       });
     });
@@ -1507,21 +1806,12 @@ function applyColors(){
 
     saved.forEach(function(s) {
       if (s.isLine) {
-        s.el.setAttribute('stroke', worstColor || s.stroke || s.styleStroke || '#000000');
-        if (s.styleStroke !== null) s.el.style.stroke = worstColor || s.styleStroke || '';
+        // Line/pipe: apply color to stroke
+        s.el.setAttribute('stroke', worstColor || '#9e9e9e');
       } else {
-        if (s.fill === null && s.styleFill === null) return; // no fill at all
-        if (s.fill === 'none' && !s.styleFill) return;
-        if (worstColor) {
-          // Apply color — use both attribute and style to cover draw.io elements
-          s.el.setAttribute('fill', worstColor);
-          s.el.style.fill = worstColor;
-        } else {
-          // Restore original
-          if (s.fill !== null) s.el.setAttribute('fill', s.fill);
-          else s.el.removeAttribute('fill');
-          s.el.style.fill = s.styleFill || '';
-        }
+        // Shape: apply color to fill (skip fill=none elements like hitbox lines)
+        if (!s.fill || s.fill === 'none') return;
+        s.el.setAttribute('fill', worstColor || '#d0d0d0');
       }
     });
   });
@@ -1831,13 +2121,24 @@ function getData(){
   const q=document.getElementById('msrch').value.toLowerCase();
   const fl=document.getElementById('mflv').value;
   const ft=document.getElementById('mftp').value;
+  // Buat set tag valid dari EQUIP_LIST
+  const validTags = new Set(EQUIP_LIST.map(function(e){ return e.tag; }));
   if(curTab==='list'){
     return EQUIP_LIST.filter(e=>{
       const mq=!q||e.tag.toLowerCase().includes(q)||(e.type||'').toLowerCase().includes(q);
       const mt=ft==='all'||e.type===ft; return mq&&mt;
     });
   }
-  return Object.values(COND).filter(d=>{
+const emptyEntry = (tag, type) => ({
+    tag, type: type||'',
+    visual_level:'', visual_notes:'', visual_value:0,
+    corrosion_level:'', corrosion_rate:0, thickness:0,
+    rl_value:0, rl_level:''
+  });
+  const merged = EQUIP_LIST.map(function(e){
+    return COND[e.tag] ? Object.assign({}, emptyEntry(e.tag, e.type), COND[e.tag]) : emptyEntry(e.tag, e.type);
+  });
+  return merged.filter(d=>{
     const lv=curTab==='visual'?d.visual_level:curTab==='corrosion'?d.corrosion_level:d.rl_level;
     const mq=!q||d.tag.toLowerCase().includes(q)||(d.type||'').toLowerCase().includes(q);
     const ml=fl==='all'||lv===fl; const mt=ft==='all'||d.type===ft;
@@ -1881,8 +2182,9 @@ function renderTbl(){
     th='<tr><th>#</th><th>Tag</th><th>Tipe</th><th>Level Korosi</th><th>Corr.Rate(mm/yr)</th><th>Thickness(mm)</th><th></th></tr>';
     data.forEach((d,i)=>{
       const sid=`sv-c-${d.tag.replace(/[^a-z0-9]/gi,'_')}`;
+      const corrLv=getLvFromCorrosion(d.corrosion_rate,d.thickness)||d.corrosion_level||'';
       rows+=`<tr><td style="color:#ccc;font-size:10px">${i+1}</td><td><span class="tag-b">${d.tag}</span></td><td style="font-size:11px">${TI[d.type]||'📦'} ${d.type||'—'}</td>
-      <td>${lvSel(d.tag,'corrosion_level',d.corrosion_level)}</td>
+      <td><span class="lv-badge ${corrLv||'empty'}" id="lv-c-${d.tag.replace(/[^a-z0-9]/gi,'_')}">${corrLv||'—'}</span></td>
       <td><input class="ni" type="number" step="0.001" min="0" value="${d.corrosion_rate}" onchange="updNum('${esc(d.tag)}','corrosion_rate',this.value)"></td>
       <td><input class="ni" type="number" step="0.1" min="0" value="${d.thickness}" onchange="updNum('${esc(d.tag)}','thickness',this.value)"></td>
       <td><button class="sv-btn" onclick="saveR('${esc(d.tag)}','c')">💾</button> <span class="fl" id="${sid}" style="display:none">✓</span></td></tr>`;
@@ -1891,8 +2193,9 @@ function renderTbl(){
     th='<tr><th>#</th><th>Tag</th><th>Tipe</th><th>Level RL</th><th>Rem.Life(thn)</th><th></th></tr>';
     data.forEach((d,i)=>{
       const sid=`sv-r-${d.tag.replace(/[^a-z0-9]/gi,'_')}`;
+      const rlLv=getLvFromRL(d.rl_value)||d.rl_level||'';
       rows+=`<tr><td style="color:#ccc;font-size:10px">${i+1}</td><td><span class="tag-b">${d.tag}</span></td><td style="font-size:11px">${TI[d.type]||'📦'} ${d.type||'—'}</td>
-      <td>${lvSel(d.tag,'rl_level',d.rl_level)}</td>
+      <td><span class="lv-badge ${rlLv||'empty'}" id="lv-r-${d.tag.replace(/[^a-z0-9]/gi,'_')}">${rlLv||'—'}</span></td>
       <td><input class="ni" type="number" step="0.1" min="0" value="${d.rl_value}" onchange="updRL('${esc(d.tag)}',this.value)"></td>
       <td><button class="sv-btn" onclick="saveR('${esc(d.tag)}','r')">💾</button> <span class="fl" id="${sid}" style="display:none">✓</span></td></tr>`;
     });
@@ -1910,50 +2213,419 @@ function buildStats(data){
 }
 
 // ── Upload panel ────────────────────────────────────────
+// Per-category pending files (waiting for submit)
+var _pendingFiles = { visual: null, corrosion: null, rl: null, equipment: null };
+
 function renderUpload(){
   document.getElementById('m-cnt').textContent='';
   document.getElementById('m-stats').innerHTML='';
   document.getElementById('m-tbl').innerHTML=`
   <div class="upload-panel">
-    <h3>📤 Upload Excel — Pilih file untuk setiap kategori</h3>
-    <p style="font-size:10px;color:#888;margin-bottom:12px">Format: .xlsx | Bersifat <b>REPLACE</b> — data lama diganti. Kolom Tag harus cocok. <a href="#" onclick="downloadTemplate();return false" style="color:#1565c0">⬇ Download Template</a></p>
-    <div class="upload-grid">
-      ${['equipment','visual','corrosion','rl'].map(type=>{
-        const labels={equipment:'📦 Equipment List',visual:'👁 Visual Condition',corrosion:'🔬 Corrosion',rl:'⏳ Remaining Life'};
-        const descs={equipment:'Sheet: Equipment',visual:'Sheet: Visual Condition',corrosion:'Sheet: Corrosion',rl:'Sheet: Remaining Life'};
-        return `<label class="upload-slot">
-          <input type="file" accept=".xlsx,.xls" onchange="handleUpload('${type}',this.files[0])">
-          <div class="us-icon">${labels[type].split(' ')[0]}</div>
-          <div class="us-text"><strong>${labels[type].slice(2)}</strong><span>${descs[type]}</span><div class="upload-ok" id="up-status-${type}"></div></div>
-        </label>`;
-      }).join('')}
+
+    <!-- ── Upload per kategori ── -->
+    <div style="margin-bottom:10px;font-size:12px;color:#555;font-weight:600">Upload nilai per kategori — pilih file Excel, lalu klik <b>Submit</b>:</div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      ${[
+        {type:'visual',   icon:'👁',  label:'Visual Condition',   hint:'Kolom: Tag | Nilai Visual (1–4) | Catatan',         color:'#1565c0'},
+        {type:'corrosion',icon:'🔬', label:'Corrosion',           hint:'Kolom: Tag | Corr. Rate (mm/yr) | Thickness (mm)',  color:'#b71c1c'},
+        {type:'rl',       icon:'⏳', label:'Remaining Life',      hint:'Kolom: Tag | Remaining Life (thn)',                 color:'#6a1b9a'},
+        {type:'equipment',icon:'📦', label:'Equipment List',      hint:'Kolom: Tag | Tipe | Status',                        color:'#2e7d32'}
+      ].map(({type,icon,label,hint,color})=>`
+        <div style="background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 14px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <div style="font-size:22px;flex-shrink:0">${icon}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:700;color:#1a1a2e">${label}</div>
+              <div style="font-size:9px;color:#9ca3af;margin-top:1px">${hint}</div>
+            </div>
+            <button onclick="downloadTemplateSingle('${type}')" style="flex-shrink:0;padding:4px 10px;font-size:10px;border:1px dashed #90caf9;border-radius:6px;background:#f0f4ff;color:#1565c0;cursor:pointer;font-weight:600">⬇ Template</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <label style="flex:1;display:flex;align-items:center;gap:8px;padding:7px 12px;border:1.5px dashed #c8d8f5;border-radius:7px;cursor:pointer;background:#f8faff;transition:all .15s;min-width:0" id="lbl-pick-${type}">
+              <input type="file" accept=".xlsx,.xls,.csv" style="display:none" onchange="pickFile('${type}',this)">
+              <span style="font-size:14px">📂</span>
+              <span id="pick-name-${type}" style="font-size:11px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Pilih file Excel…</span>
+            </label>
+            <button id="btn-submit-${type}" onclick="submitUpload('${type}')" style="flex-shrink:0;padding:7px 16px;background:#e2e8f0;color:#9ca3af;border:none;border-radius:7px;font-size:11px;font-weight:700;cursor:not-allowed;transition:all .2s" disabled>⬆ Submit</button>
+          </div>
+          <div id="up-status-${type}" class="up-status-bar" style="display:none;margin-top:8px;margin-bottom:0"></div>
+        </div>
+      `).join('')}
+    </div>
+
+
+    <div id="up-status-all" class="up-status-bar" style="display:none"></div>
+
+    <div class="up-footer-note">
+      ⚠ Data bersifat <b>UPDATE</b> — hanya tag yang ada di file yang diperbarui, tag lain tidak terpengaruh
     </div>
   </div>`;
 }
 
-// ── Edit functions ──────────────────────────────────────
+// ── Pick file (per category) — shows name, enables submit button ──────────
+function pickFile(type, inputEl) {
+  var file = inputEl.files[0];
+  if (!file) return;
+  _pendingFiles[type] = file;
+  // Update label text
+  var nameEl = document.getElementById('pick-name-' + type);
+  if (nameEl) nameEl.textContent = file.name;
+  // Enable submit button
+  var btn = document.getElementById('btn-submit-' + type);
+  if (btn) {
+    btn.disabled = false;
+    btn.style.background = 'linear-gradient(135deg,#1565c0,#1e88e5)';
+    btn.style.color = '#fff';
+    btn.style.cursor = 'pointer';
+  }
+  // Reset status
+  var statusEl = document.getElementById('up-status-' + type);
+  if (statusEl) statusEl.style.display = 'none';
+}
+
+// ── Submit upload for a single category ──────────────────────────────────
+async function submitUpload(type) {
+  var file = _pendingFiles[type];
+  if (!file) return;
+  await handleUpload(type, file);
+  // Reset pending after submit
+  _pendingFiles[type] = null;
+  var nameEl = document.getElementById('pick-name-' + type);
+  if (nameEl) nameEl.textContent = 'Pilih file Excel…';
+  var btn = document.getElementById('btn-submit-' + type);
+  if (btn) {
+    btn.disabled = true;
+    btn.style.background = '#e2e8f0';
+    btn.style.color = '#9ca3af';
+    btn.style.cursor = 'not-allowed';
+  }
+}
+
+// ── Upload single category ────────────────────────────────────────────────
+async function handleUpload(type, file) {
+  if (!file) return;
+  var statusEl = document.getElementById('up-status-' + type);
+  function setStatus(cls, msg) {
+    if (!statusEl) return;
+    statusEl.style.display = 'flex';
+    statusEl.className = 'up-status-bar ' + cls;
+    statusEl.textContent = msg;
+  }
+  setStatus('up-status-loading', '⏳ Membaca file...');
+
+  try {
+    var wb = await new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try { resolve(XLSX.read(e.target.result, { type: 'array' })); }
+        catch(err) { reject(err); }
+      };
+      reader.onerror = function() { reject(new Error('Gagal membaca file')); };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Pick the right sheet
+    var sheetAliases = {
+      visual:    ['visual condition', 'visual', 'kondisi visual'],
+      corrosion: ['corrosion', 'korosi'],
+      rl:        ['remaining life', 'remaining', 'sisa umur'],
+      equipment: ['equipment', 'peralatan']
+    };
+    var aliases = sheetAliases[type] || [];
+    var wsName = wb.SheetNames[0];
+    for (var si = 0; si < wb.SheetNames.length; si++) {
+      var sn = wb.SheetNames[si].toLowerCase().trim();
+      if (aliases.some(function(a){ return sn.indexOf(a) >= 0; })) { wsName = wb.SheetNames[si]; break; }
+    }
+
+    // Read ALL rows as raw arrays
+    var ws = wb.Sheets[wsName];
+    var allRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+
+    // Find the header row — look for a row where col A contains "tag" (case-insensitive)
+    var hdrIdx = -1;
+    for (var r = 0; r < Math.min(6, allRows.length); r++) {
+      var cell0 = String(allRows[r][0] || '').trim().toLowerCase();
+      if (cell0 === 'tag' || cell0.indexOf('tag') === 0) { hdrIdx = r; break; }
+    }
+    if (hdrIdx < 0) { setStatus('up-status-error', '❌ Baris header "Tag" tidak ditemukan dalam 6 baris pertama'); return; }
+
+    // Build header map — key: keyword → col index
+    var hdr = allRows[hdrIdx].map(function(v){ return String(v||'').trim().toLowerCase(); });
+
+    function findCol() {
+      var keywords = Array.prototype.slice.call(arguments);
+      for (var ci = 0; ci < hdr.length; ci++) {
+        for (var ki = 0; ki < keywords.length; ki++) {
+          if (hdr[ci].indexOf(keywords[ki]) >= 0) return ci;
+        }
+      }
+      return -1;
+    }
+
+    var tagCol    = findCol('tag');
+    var lvCol     = findCol('nilai', 'level');
+    var crCol     = findCol('rate', 'corr');
+    var thkCol    = findCol('thick');
+    var rlvCol    = findCol('remaining', 'life', 'thn', 'tahun', 'year');
+    var notCol    = findCol('catatan', 'note');
+    var typeCol   = findCol('tipe', 'type');
+    var statusCol = findCol('status');
+
+    console.log('[UPLOAD] type='+type+' sheet="'+wsName+'" hdrRow='+hdrIdx);
+    console.log('[UPLOAD] hdr=', hdr);
+    console.log('[UPLOAD] cols: tag='+tagCol+' lv='+lvCol+' cr='+crCol+' thk='+thkCol+' rl='+rlvCol);
+
+    var VALID_LV = { Low:1, Moderate:1, High:1, Severe:1 };
+    var updated = 0;
+    var skipped = [];
+
+    // Data rows start AFTER header, skip any row where col A is empty or looks like a note
+    for (var ri = hdrIdx + 1; ri < allRows.length; ri++) {
+      var row = allRows[ri];
+      var tag = String(row[tagCol] || '').trim();
+      if (!tag) continue; // skip empty / note rows
+
+      // Init COND entry if not exists
+      if (type !== 'equipment') {
+        if (!COND[tag]) COND[tag] = { tag:tag, type:'', visual_level:'', visual_notes:'', corrosion_level:'', corrosion_rate:0, thickness:0, rl_value:0, rl_level:'' };
+      }
+
+      if (type === 'rl') {
+        var rawRL = rlvCol >= 0 ? row[rlvCol] : '';
+        var rlv   = parseFloat(String(rawRL).replace(',','.'));
+        if (isNaN(rlv) || rlv === 0) continue; // skip baris kosong / duplikat
+        COND[tag].rl_value = rlv;
+        COND[tag].rl_level = getLvFromRL(rlv);
+        updated++;
+
+      } else if (type === 'visual') {
+        var rawV  = lvCol >= 0 ? String(row[lvCol]||'').trim() : '';
+        if (!rawV) continue; // skip baris kosong / duplikat
+        var numV  = parseInt(rawV);
+        if (!isNaN(numV) && numV > 0) { COND[tag].visual_value = numV; COND[tag].visual_level = getLvFromVisual(numV); }
+        else if (VALID_LV[rawV]) { COND[tag].visual_level = rawV; }
+        if (notCol >= 0) COND[tag].visual_notes = String(row[notCol]||'').trim();
+        updated++;
+
+      } else if (type === 'corrosion') {
+        var cr  = parseFloat(String(crCol  >= 0 ? row[crCol]  : '').replace(',','.')) || 0;
+        var thk = parseFloat(String(thkCol >= 0 ? row[thkCol] : '').replace(',','.')) || 0;
+        console.log('[CORR]', tag, '| crCol='+crCol, 'rawCR='+JSON.stringify(row[crCol]), '→cr='+cr, '| thkCol='+thkCol, 'rawThk='+JSON.stringify(row[thkCol]), '→thk='+thk);
+        if (cr === 0 && thk === 0) continue; // skip baris kosong / duplikat tanpa nilai
+        COND[tag].corrosion_rate  = cr;
+        COND[tag].thickness       = thk;
+        COND[tag].corrosion_level = getLvFromCorrosion(cr, thk);
+        updated++;
+
+      } else if (type === 'equipment') {
+        var tp = typeCol   >= 0 ? String(row[typeCol]  ||'').trim() : '';
+        var st = statusCol >= 0 ? String(row[statusCol]||'').trim() : '';
+        var ei = EQUIP_LIST.findIndex(function(e){ return e.tag === tag; });
+        if (ei >= 0) { if(tp) EQUIP_LIST[ei].type=tp; if(st) EQUIP_LIST[ei].status=st; }
+        else EQUIP_LIST.push({ tag:tag, type:tp, status:st, color:'' });
+        updated++;
+      }
+    }
+
+    applyColors();
+    if (curTab !== 'upload') renderTbl();
+
+    if (API_URL) {
+      if (type === 'equipment') pushAllTags();
+      else { const _u4 = CURRENT_UNIT === '__default__' ? 'cdu11' : CURRENT_UNIT; Promise.all(Object.values(COND).map(function(c){ return apiPost('/api/conditions', Object.assign({unit:_u4}, c)); })); }
+    }
+
+    if (updated === 0) {
+      setStatus('up-status-error', '❌ 0 baris berhasil dibaca. Header ditemukan di baris ' + (hdrIdx+1) + ', rlvCol=' + rlvCol + '. Cek format file.');
+    } else {
+      var msg = '✅ ' + updated + ' tag diperbarui dari sheet "' + wsName + '"';
+      if (skipped.length) msg += ' | ⚠ skip: ' + skipped.slice(0,3).join(', ');
+      setStatus('up-status-success', msg);
+      var modeMap = { visual:'visual', corrosion:'corrosion', rl:'rl' };
+      if (modeMap[type]) { var mb = document.querySelector('.ctab[data-mode="'+modeMap[type]+'"]'); if(mb) setMode(modeMap[type], mb); }
+    }
+  } catch(err) {
+    setStatus('up-status-error', '❌ Error: ' + (err.message || err));
+  }
+}
+
+// ── Upload ALL sheets from one file ─────────────────────────────────────
+async function handleUploadAll(file) {
+  if (!file) return;
+  const statusEl = document.getElementById('up-status-all');
+  statusEl.style.display = 'flex';
+  statusEl.className = 'up-status-bar up-status-loading';
+  statusEl.textContent = '⏳ Membaca file...';
+
+  try {
+    const data = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        try { resolve(XLSX.read(e.target.result, { type: 'array' })); }
+        catch(err) { reject(err.message || 'Error parsing file'); }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    const sheetMap = {
+      'Visual Condition': 'visual',
+      'Corrosion': 'corrosion',
+      'Remaining Life': 'rl',
+      'Equipment': 'equipment'
+    };
+
+    const VALID_LV = new Set(['Low','Moderate','High','Severe']);
+    let totalUpdated = 0, sheetsProcessed = [];
+
+    for (const [sheetName, type] of Object.entries(sheetMap)) {
+      const ws = data.Sheets[sheetName];
+      if (!ws) continue;
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      // Find header row
+      let hdrRow = -1, tagCol = -1;
+      for (let r = 0; r < Math.min(5, rows.length); r++) {
+        const row = rows[r].map(v => String(v||'').trim().toLowerCase());
+        const ti = row.findIndex(c => c === 'tag' || c === 'tag / equipment id');
+        if (ti >= 0) { hdrRow = r; tagCol = ti; break; }
+      }
+      if (hdrRow < 0) continue;
+
+      const hdr = rows[hdrRow].map(v => String(v||'').trim().toLowerCase());
+      const lvCol    = hdr.findIndex(c => c.includes('level') || c.includes('nilai'));
+      const crCol    = hdr.findIndex(c => c.includes('rate') || c.includes('corr'));
+      const thkCol   = hdr.findIndex(c => c.includes('thick'));
+      const rlvCol   = hdr.findIndex(c => c.includes('remaining') || c.includes('tahun') || c.includes('year'));
+      const notCol   = hdr.findIndex(c => c.includes('catatan') || c.includes('note'));
+      const typeCol  = hdr.findIndex(c => c.includes('tipe') || c.includes('type'));
+      const statusCol= hdr.findIndex(c => c.includes('status'));
+
+      let updated = 0;
+      for (let r = hdrRow + 1; r < rows.length; r++) {
+        const row = rows[r];
+        const tag = String(row[tagCol]||'').trim();
+        if (!tag) continue;
+
+        if (type === 'equipment') {
+          const tp = typeCol >= 0 ? String(row[typeCol]||'').trim() : '';
+          const st = statusCol >= 0 ? String(row[statusCol]||'').trim() : '';
+          const idx = EQUIP_LIST.findIndex(e => e.tag === tag);
+          if (idx >= 0) { EQUIP_LIST[idx].type = tp||EQUIP_LIST[idx].type; EQUIP_LIST[idx].status = st||EQUIP_LIST[idx].status; }
+          else EQUIP_LIST.push({ tag, type: tp, status: st, color: '' });
+          updated++;
+        } else if (type === 'visual') {
+          if (!COND[tag]) COND[tag] = { tag, type:'', visual_level:'', visual_notes:'', corrosion_level:'', corrosion_rate:0, thickness:0, rl_value:0, rl_level:'' };
+          const rawVal = lvCol >= 0 ? String(row[lvCol]||'').trim() : '';
+          const numVal = parseInt(rawVal);
+          if (!isNaN(numVal) && numVal > 0) { COND[tag].visual_value = numVal; COND[tag].visual_level = getLvFromVisual(numVal); }
+          else if (VALID_LV.has(rawVal)) { COND[tag].visual_level = rawVal; }
+          if (notCol >= 0) COND[tag].visual_notes = String(row[notCol]||'').trim();
+          updated++;
+        } else if (type === 'corrosion') {
+          if (!COND[tag]) COND[tag] = { tag, type:'', visual_level:'', visual_notes:'', corrosion_level:'', corrosion_rate:0, thickness:0, rl_value:0, rl_level:'' };
+          const cr  = crCol  >= 0 ? parseFloat(row[crCol])||0  : 0;
+          const thk = thkCol >= 0 ? parseFloat(row[thkCol])||0 : 0;
+          COND[tag].corrosion_rate  = cr;
+          COND[tag].thickness       = thk;
+          COND[tag].corrosion_level = getLvFromCorrosion(cr, thk);
+          updated++;
+        } else if (type === 'rl') {
+          if (!COND[tag]) COND[tag] = { tag, type:'', visual_level:'', visual_notes:'', corrosion_level:'', corrosion_rate:0, thickness:0, rl_value:0, rl_level:'' };
+          const rlv = rlvCol >= 0 ? parseFloat(row[rlvCol])||0 : 0;
+          COND[tag].rl_value = rlv;
+          COND[tag].rl_level = getLvFromRL(rlv);
+          updated++;
+        }
+        totalUpdated++;
+      }
+      if (updated > 0) sheetsProcessed.push(`${sheetName} (${updated})`);
+
+      // Update per-slot status indicator too
+      const slotStatus = document.getElementById(`up-status-${type}`);
+      if (slotStatus && updated > 0) { slotStatus.className = 'upload-ok'; slotStatus.textContent = `✅ ${updated} baris`; }
+    }
+
+    applyColors();
+    // Refresh table rows if user is on a data tab (not the upload tab itself)
+    if (curTab !== 'upload') renderTbl();
+
+    // Sync to DB
+    if (API_URL) {
+      const condTags = Object.values(COND);
+      const _u5 = CURRENT_UNIT === '__default__' ? 'cdu11' : CURRENT_UNIT; Promise.all(condTags.map(c => apiPost('/api/conditions', Object.assign({unit:_u5}, c))));
+    }
+
+    if (sheetsProcessed.length === 0) {
+      statusEl.className = 'up-status-bar up-status-error';
+      statusEl.textContent = '❌ Tidak ada sheet yang cocok ditemukan (Visual Condition / Corrosion / Remaining Life / Equipment)';
+    } else {
+      statusEl.className = 'up-status-bar up-status-success';
+      statusEl.textContent = `✅ Berhasil: ${totalUpdated} baris dari ${sheetsProcessed.length} sheet — ${sheetsProcessed.join(', ')}`;
+
+      // Auto-switch diagram mode to whichever was uploaded (priority: corrosion > rl > visual)
+      const hasCorr = sheetsProcessed.some(s => s.startsWith('Corrosion'));
+      const hasRL   = sheetsProcessed.some(s => s.startsWith('Remaining'));
+      const hasVis  = sheetsProcessed.some(s => s.startsWith('Visual'));
+      let autoMode  = hasCorr ? 'corrosion' : hasRL ? 'rl' : hasVis ? 'visual' : null;
+      if (autoMode) {
+        const modeBtn = document.querySelector(`.ctab[data-mode="${autoMode}"]`);
+        if (modeBtn) { setMode(autoMode, modeBtn); }
+      }
+
+      // Auto-switch modal tab to corrosion (or rl / visual) so table re-renders with correct colors
+      const autoTabKey = hasCorr ? 'corrosion' : hasRL ? 'rl' : hasVis ? 'visual' : null;
+      if (autoTabKey) {
+        const tabBtn = document.querySelector(`.m-tab[data-mt="${autoTabKey}"]`);
+        if (tabBtn) switchTab(autoTabKey, tabBtn);
+      }
+    }
+  } catch(err) {
+    const statusEl = document.getElementById('up-status-all');
+    statusEl.className = 'up-status-bar up-status-error';
+    statusEl.textContent = `❌ Error: ${err}`;
+  }
+}
+
+
 function updLv(tag,field,sel){
   if(!COND[tag])return;
   COND[tag][field]=sel.value;
   sel.className=`lv-sel lv-${sel.value}`;
 }
 function updNotes(tag,field,val){if(COND[tag])COND[tag][field]=val;}
-function updNum(tag,field,val){if(COND[tag])COND[tag][field]=parseFloat(val)||0;}
+function updNum(tag,field,val){
+  if(!COND[tag])return;
+  COND[tag][field]=parseFloat(val)||0;
+  // Auto-recompute corrosion_level when rate or thickness changes
+  if(field==='corrosion_rate'||field==='thickness'){
+    var lv=getLvFromCorrosion(COND[tag].corrosion_rate,COND[tag].thickness)||'Low';
+    COND[tag].corrosion_level=lv;
+    // Update the read-only badge span in the same table row
+    var badgeId='lv-c-'+tag.replace(/[^a-z0-9]/gi,'_');
+    var badge=document.getElementById(badgeId);
+    if(badge){badge.className='lv-badge '+(lv||'empty');badge.textContent=lv||'—';}
+  }
+}
 function updRL(tag,val){
   if(!COND[tag])return;
   const v=parseFloat(val)||0; COND[tag].rl_value=v;
-  const lv=getLvFromRL(v) || 'Low';
+  const lv=getLvFromRL(v) || '';
   COND[tag].rl_level=lv;
-  // Update select in same row
-  const row=document.querySelector(`tr [onchange*="updRL('${tag.replace(/'/g,"\\'")}")"]`)?.closest('tr');
-  if(row){const s=row.querySelector('select');if(s){s.value=lv;s.className=`lv-sel lv-${lv}`;}}
+  // Update the read-only badge span
+  const badgeId='lv-r-'+tag.replace(/[^a-z0-9]/gi,'_');
+  const badge=document.getElementById(badgeId);
+  if(badge){badge.className='lv-badge '+(lv||'empty');badge.textContent=lv||'—';}
 }
 function saveR(tag, pfx) {
   const sid = `sv-${pfx}-${tag.replace(/[^a-z0-9]/gi,'_')}`;
   const fl  = document.getElementById(sid);
 
+  // Save to API (async, non-blocking)
   if (COND[tag]) {
-    apiPost('/api/conditions', Object.assign({}, COND[tag], { unit: currentPFDUnit })).then(result => {
+    const _u6 = CURRENT_UNIT === '__default__' ? 'cdu11' : CURRENT_UNIT;
+  apiPost('/api/conditions', Object.assign({unit:_u6}, COND[tag])).then(result => {
       if (fl) {
         fl.textContent = result ? '✓' : '✗';
         fl.style.color  = result ? '#2e7d32' : '#c62828';
@@ -1964,6 +2636,7 @@ function saveR(tag, pfx) {
   }
 
   applyColors();
+  renderTbl();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1973,101 +2646,506 @@ storeOrig();
 applyVB();
 refreshTypeDropdowns();
 
-// Load tags + conditions from DB on startup
-(async () => {
+
+
+
+
+// ── Fix semua label overflow di SVG saat load ──
+document.querySelectorAll('#diagram-inner g').forEach(function(g) {
+  if (g.querySelector('foreignObject')) {
+    fixLabelOverflow(g);
+  }
+});
+
+// ── Set semua garis ke hitam saat load default ──
+document.querySelectorAll('#diagram-inner g[data-tag]').forEach(function(g) {
+  var saved = origColors.get(g);
+  if (!saved) return;
+  saved.forEach(function(s) {
+    if (s.isLine) s.el.setAttribute('stroke', '#000000');
+  });
+});
+
+// ── applyLabelsFromDB: apply label overrides to current SVG ──────────────────
+async function applyLabelsFromDB(unit) {
+  var remoteLabels = await apiGet('/api/labels?unit=' + encodeURIComponent(unit));
+  if (!remoteLabels || !Object.keys(remoteLabels).length) return;
+  Object.keys(remoteLabels).forEach(function(lkey) {
+    var lv = remoteLabels[lkey];
+    var originalText = lkey.replace(/^lbl:/, '');
+    var applied = false;
+    document.querySelectorAll('#diagram-inner g[data-lbl-key]').forEach(function(lg) {
+      if (applied) return;
+      if (lg.getAttribute('data-lbl-key') !== lkey) return;
+      var bEl = lg.querySelector('foreignObject b');
+      var plainEl = null;
+      if (!bEl) { lg.querySelectorAll('foreignObject div').forEach(function(d){ if (d.children.length===0 && d.textContent.trim()) plainEl=d; }); }
+      var fontEl = lg.querySelector('foreignObject font');
+      if (bEl) bEl.textContent = lv.main;
+      else if (plainEl) plainEl.textContent = lv.main;
+      if (fontEl && lv.sub) fontEl.textContent = lv.sub;
+      fixLabelOverflow(lg);
+      applied = true;
+    });
+    if (!applied) {
+      document.querySelectorAll('#diagram-inner g:not([data-uid])').forEach(function(lg) {
+        if (applied) return;
+        var bEl = lg.querySelector('foreignObject b');
+        var plainEl = null;
+        if (!bEl) { lg.querySelectorAll('foreignObject div').forEach(function(d){ if (d.children.length===0 && d.textContent.trim()===originalText) plainEl=d; }); }
+        var fontEl = lg.querySelector('foreignObject font');
+        var curText = bEl ? bEl.textContent.trim() : (plainEl ? plainEl.textContent.trim() : '');
+        if (curText === originalText) {
+          if (bEl) bEl.textContent = lv.main;
+          else if (plainEl) plainEl.textContent = lv.main;
+          if (fontEl && lv.sub) fontEl.textContent = lv.sub;
+          lg.setAttribute('data-lbl-key', lkey);
+          fixLabelOverflow(lg);
+          applied = true;
+        }
+      });
+    }
+  });
+  console.log('✅ Labels loaded:', Object.keys(remoteLabels).length);
+}
+
+// ── applyTagsFromDB: apply tag overrides to current SVG ──────────────────────
+async function applyTagsFromDB(unit) {
+  var remoteTags = await apiGet('/api/tags?unit=' + encodeURIComponent(unit));
+  if (!remoteTags || !Object.keys(remoteTags).length) return 0;
+  let tagUpdated = 0;
+  Object.values(remoteTags).forEach(function(row) {
+    var g = document.querySelector('#diagram-inner g[data-uid="' + row.uid + '"]');
+    if (!g) return;
+    var oldTag = g.getAttribute('data-tag') || '';
+    g.setAttribute('data-tag', row.tag);
+    var tip = g.getAttribute('data-tip') || '';
+    if (tip.match(/^Tag: /m)) {
+      tip = tip.replace(/^Tag: .*/m, 'Tag: ' + row.tag);
+    } else {
+      tip = tip + '\nTag: ' + row.tag;
+    }
+    if (row.type) {
+      if (tip.match(/^Type: /m)) {
+        tip = tip.replace(/^Type: .*/m, 'Type: ' + row.type);
+      } else {
+        tip = 'Type: ' + row.type + '\n' + tip;
+      }
+    }
+    g.setAttribute('data-tip', tip);
+    BEST_TIPS[row.tag] = tip;
+    fixLabelOverflow(g);
+    if (BEST_TIPS[oldTag]) { BEST_TIPS[row.tag] = BEST_TIPS[oldTag]; if (oldTag !== row.tag) delete BEST_TIPS[oldTag]; }
+    var eqIdx = EQUIP_LIST.findIndex(function(e){ return e.tag === oldTag; });
+    if (eqIdx >= 0) { EQUIP_LIST[eqIdx].tag = row.tag; if (row.type) EQUIP_LIST[eqIdx].type = row.type; }
+    if (COND[oldTag] && oldTag !== row.tag) { COND[row.tag] = COND[oldTag]; COND[row.tag].tag = row.tag; delete COND[oldTag]; }
+    tagUpdated++;
+  });
+  return tagUpdated;
+}
+
+// ── rebindSVGEvents: re-attach tooltip + dblclick events after SVG swap ──────
+function rebindSVGEvents() {
+  document.querySelectorAll('#diagram-inner g[data-tag]').forEach(function(g) {
+    g.addEventListener('mouseenter', function(e){ showTip(e,g); });
+    g.addEventListener('mouseleave', hideTip);
+    g.addEventListener('mousemove', mvTip);
+  });
+  if (typeof bindEditEvents === 'function') bindEditEvents();
+}
+
+// ── initForUnit: full load sequence for a given unit ─────────────────────────
+async function initForUnit(unit) {
   const sb = document.getElementById('sb');
 
-  if (API_URL) {
-    // ── Load tags from DB → apply to SVG ──────────────────────────────
-    const remoteTags = await apiGet('/api/tags');
-    if (remoteTags && Object.keys(remoteTags).length > 0) {
-      let tagUpdated = 0;
-      var tagRenames = {}; // oldTag → newTag map for second-pass label update
-      Object.values(remoteTags).forEach(function(row) {
-        var g = document.querySelector('#diagram-inner g[data-uid="' + row.uid + '"]');
-        if (!g) return;
-        var oldTag = g.getAttribute('data-tag') || '';
-        // Apply tag
-        g.setAttribute('data-tag', row.tag);
-        // Rebuild data-tip with new tag + type
-        var tip = g.getAttribute('data-tip') || '';
-        // Update Tag line
-        if (tip.match(/^Tag: /m)) {
-          tip = tip.replace(/^Tag: .*/m, 'Tag: ' + row.tag);
-        } else {
-          tip = tip + '\nTag: ' + row.tag;
-        }
-        // Update Type line
-        if (row.type) {
-          if (tip.match(/^Type: /m)) {
-            tip = tip.replace(/^Type: .*/m, 'Type: ' + row.type);
-          } else {
-            tip = 'Type: ' + row.type + '\n' + tip;
-          }
-        }
-        g.setAttribute('data-tip', tip);
-        // Also update BEST_TIPS with new tip
-        BEST_TIPS[row.tag] = tip;
-        // Update SVG text label INSIDE g (equipment/vessel/HE)
-        g.querySelectorAll('foreignObject div').forEach(function(d) {
-          if (d.children.length === 0 && d.textContent.trim() === oldTag) d.textContent = row.tag;
-        });
-        // Track rename for second-pass label update (pipes/lines label is after LAST segment)
-        if (oldTag !== row.tag) tagRenames[oldTag] = row.tag;
-        // Update BEST_TIPS + EQUIP_LIST
-        if (BEST_TIPS[oldTag]) { BEST_TIPS[row.tag] = BEST_TIPS[oldTag]; if (oldTag !== row.tag) delete BEST_TIPS[oldTag]; }
-        var eqIdx = EQUIP_LIST.findIndex(function(e){ return e.tag === oldTag; });
-        if (eqIdx >= 0) { EQUIP_LIST[eqIdx].tag = row.tag; if (row.type) EQUIP_LIST[eqIdx].type = row.type; }
-        // Update COND key
-        if (COND[oldTag] && oldTag !== row.tag) { COND[row.tag] = COND[oldTag]; COND[row.tag].tag = row.tag; delete COND[oldTag]; }
-        tagUpdated++;
+  // Reset state for new unit
+  Object.keys(COND).forEach(function(k){ delete COND[k]; });
+  EQUIP_LIST.length = 0;
+  origColors.clear();
+
+  storeOrig();
+  refreshTypeDropdowns();
+
+  // Fix label overflow on new SVG
+  document.querySelectorAll('#diagram-inner g').forEach(function(g) {
+    if (g.querySelector('foreignObject')) fixLabelOverflow(g);
+  });
+
+  // Set default lines to black
+  document.querySelectorAll('#diagram-inner g[data-tag]').forEach(function(g) {
+    var saved = origColors.get(g);
+    if (!saved) return;
+    saved.forEach(function(s) {
+      if (s.isLine) s.el.setAttribute('stroke', '#000000');
+    });
+  });
+
+  // Rebuild EQUIP_LIST from SVG
+  document.querySelectorAll('#diagram-inner g[data-uid][data-tag]').forEach(function(g) {
+    var tag = g.getAttribute('data-tag') || '';
+    var tip = g.getAttribute('data-tip') || '';
+    var type = '', status = '';
+    tip.split('\n').forEach(function(l) {
+      if (l.startsWith('Type: '))   type   = l.slice(6);
+      if (l.startsWith('Status: ')) status = l.slice(8);
+    });
+    if (!tag) return;
+    tag.split(' | ').map(function(t){ return t.trim(); }).filter(Boolean).forEach(function(t) {
+      if (EQUIP_LIST.findIndex(function(e){ return e.tag === t; }) < 0)
+        EQUIP_LIST.push({ tag: t, type: type, status: status, color: '' });
+    });
+  });
+
+  // Rebind tooltip & edit events
+  rebindSVGEvents();
+
+  if (!API_URL) {
+    applyColors();
+    renderLegend();
+    return;
+  }
+
+  // Apply tags from DB
+  var tagCount = await applyTagsFromDB(unit);
+  if (tagCount > 0) {
+    console.log('✅ Applied', tagCount, 'tags from DB for unit:', unit);
+    refreshTypeDropdowns();
+    // Rebuild EQUIP_LIST after tag updates
+    EQUIP_LIST.length = 0;
+    document.querySelectorAll('#diagram-inner g[data-uid][data-tag]').forEach(function(g) {
+      var tag = g.getAttribute('data-tag') || '';
+      var tip = g.getAttribute('data-tip') || '';
+      var type = '', status = '';
+      tip.split('\n').forEach(function(l) {
+        if (l.startsWith('Type: '))   type   = l.slice(6);
+        if (l.startsWith('Status: ')) status = l.slice(8);
       });
+      if (!tag) return;
+      tag.split(' | ').map(function(t){ return t.trim(); }).filter(Boolean).forEach(function(t) {
+        if (EQUIP_LIST.findIndex(function(e){ return e.tag === t; }) < 0)
+          EQUIP_LIST.push({ tag: t, type: type, status: status, color: '' });
+      });
+    });
+    if (typeof renderTbl === 'function') renderTbl();
+  }
 
-      // ── Second pass: update ALL label siblings for renamed tags ──────
-      // Label <g> siblings have no data-tag/data-uid and contain foreignObject
-      // They appear after the LAST segment of each pipe/line group
-      if (Object.keys(tagRenames).length > 0) {
-        document.querySelectorAll('#diagram-inner g:not([data-tag]):not([data-uid])').forEach(function(labelG) {
-          labelG.querySelectorAll('foreignObject div').forEach(function(d) {
-            if (d.children.length === 0) {
-              var txt = d.textContent.trim();
-              if (tagRenames[txt]) d.textContent = tagRenames[txt];
-            }
-          });
-        });
-      }
+  // Load conditions from DB
+  var remoteCond = await apiGet('/api/conditions?unit=' + encodeURIComponent(unit));
+  if (remoteCond && Object.keys(remoteCond).length > 0) {
+    Object.assign(COND, remoteCond);
+    console.log('✅ Conditions loaded:', Object.keys(remoteCond).length);
+    if (typeof renderTbl === 'function') renderTbl();
+  }
 
-      console.log('✅ Applied', tagUpdated, 'tags from DB');
-      refreshTypeDropdowns();
-    }
+  // Load COLOR_SCALES (shared/global)
+  var remoteScales = await apiGet('/api/scales');
+  if (remoteScales) {
+    Object.assign(COLOR_SCALES, remoteScales);
+    console.log('✅ Color scales loaded from DB');
+  }
 
-    // ── Load conditions from DB ────────────────────────────────────────
-    const remoteCond = await apiGet('/api/conditions');
-    if (remoteCond && Object.keys(remoteCond).length > 0) {
-      Object.assign(COND, remoteCond);
-      console.log('✅ Loaded', Object.keys(remoteCond).length, 'conditions from DB');
-    }
+  // Apply label overrides
+  await applyLabelsFromDB(unit);
 
-    // ── Load COLOR_SCALES from DB ──────────────────────────────────────
-    var remoteScales = await apiGet('/api/scales');
-    if (remoteScales) {
-      Object.assign(COLOR_SCALES, remoteScales);
-      console.log('✅ Color scales loaded from DB');
-    }
-
-    if (sb) {
-      sb.textContent = (remoteTags || remoteCond) ? '🟢 Connected to DB' : '🔴 DB connection failed';
-      setTimeout(() => { sb.textContent = ''; }, 3000);
-    }
-  } else {
-    console.log('📁 Offline mode — using built-in data');
+  if (sb) {
+    sb.textContent = '🟢 Connected to DB';
+    setTimeout(() => { sb.textContent = ''; }, 3000);
   }
 
   applyColors();
   renderLegend();
+
+  // Sync tags to DB
+  setTimeout(function(){ pushAllTags(); }, 500);
+}
+
+// ── PFD List management ───────────────────────────────────────────────────────
+async function loadPFDList() {
+  if (!API_URL) return;
+  try {
+    var list = await apiGet('/api/pfds');
+    if (!list) return;
+    PFD_LIST = list;
+    var sel = document.getElementById('pfd-dropdown');
+    // Keep __default__ option
+    while (sel.options.length > 1) sel.remove(1);
+    list.forEach(function(pfd) {
+      if (pfd.is_default) return; // skip if server marks as default (we use __default__ for embedded)
+      var opt = document.createElement('option');
+      opt.value = pfd.id;
+      opt.textContent = pfd.name;
+      sel.appendChild(opt);
+    });
+    // Restore current selection
+    sel.value = CURRENT_UNIT;
+  } catch(e) { console.warn('loadPFDList failed:', e); }
+}
+
+// ── onPFDChange: switch to another PFD ───────────────────────────────────────
+async function onPFDChange(pfdId) {
+  if (pfdId === CURRENT_UNIT) return;
+
+  var overlay = document.getElementById('pfd-switch-overlay');
+  var swText  = document.getElementById('pfd-sw-text');
+  overlay.classList.add('show');
+
+  // Determine which PFD to load
+  if (pfdId === '__default__') {
+    swText.textContent = '⏳ Memuat PFD default...';
+    // Restore embedded SVG
+    var inner = document.getElementById('diagram-inner');
+    inner.innerHTML = DEFAULT_SVG_INNER;
+    // Reset viewBox
+    vbX = -510; vbY = -970; vbW = BASE_W; vbH = BASE_H;
+    applyVB();
+    CURRENT_UNIT = '__default__';
+    document.getElementById('hdr-subtitle').textContent = 'CDU #11 — Process Flow Diagram';
+    document.getElementById('btn-pfd-del').classList.remove('show');
+  } else {
+    // Fetch SVG from server
+    swText.textContent = '⏳ Mengunduh PFD dari server...';
+    try {
+      var pfdData = await fetch(API_URL + '/api/pfds/' + encodeURIComponent(pfdId)).then(r => r.json());
+      if (!pfdData || !pfdData.svg_content) throw new Error('SVG content kosong');
+
+      swText.textContent = '⏳ Merender diagram...';
+      var inner = document.getElementById('diagram-inner');
+
+      // Parse SVG content and extract diagram-inner contents
+      var parsed = new DOMParser().parseFromString(pfdData.svg_content, 'image/svg+xml');
+      var srcInner = parsed.getElementById('diagram-inner');
+      if (srcInner) {
+        inner.innerHTML = srcInner.innerHTML;
+      } else {
+        // No diagram-inner wrapper — use full SVG body
+        var svgEl = parsed.querySelector('svg');
+        if (svgEl) inner.innerHTML = svgEl.innerHTML;
+        else inner.innerHTML = pfdData.svg_content;
+      }
+
+      // Parse viewbox
+      if (pfdData.viewbox) {
+        var vbParts = pfdData.viewbox.split(/\s+/).map(Number);
+        if (vbParts.length === 4 && !vbParts.some(isNaN)) {
+          vbX = vbParts[0]; vbY = vbParts[1]; vbW = vbParts[2]; vbH = vbParts[3];
+        }
+      } else {
+        vbX = -510; vbY = -970; vbW = BASE_W; vbH = BASE_H;
+      }
+      applyVB();
+
+      CURRENT_UNIT = pfdId;
+      document.getElementById('hdr-subtitle').textContent = pfdData.name + ' — Process Flow Diagram';
+      document.getElementById('btn-pfd-del').classList.add('show');
+    } catch(err) {
+      console.error('Failed to load PFD:', err);
+      overlay.classList.remove('show');
+      document.getElementById('pfd-dropdown').value = CURRENT_UNIT;
+      alert('❌ Gagal memuat PFD: ' + err.message);
+      return;
+    }
+  }
+
+  swText.textContent = '⏳ Memuat data kondisi...';
+  await initForUnit(CURRENT_UNIT === '__default__' ? 'cdu11' : CURRENT_UNIT);
+
+  // Reset mode to default
+  var defBtn = document.querySelector('.ctab[data-mode="default"]');
+  if (defBtn) setMode('default', defBtn);
+
+  overlay.classList.remove('show');
+}
+
+// ── deletePFD: delete current non-default PFD ────────────────────────────────
+async function deletePFD() {
+  if (CURRENT_UNIT === '__default__') return;
+  var pfd = PFD_LIST.find(function(p){ return p.id === CURRENT_UNIT; });
+  var name = pfd ? pfd.name : CURRENT_UNIT;
+  if (!confirm('Hapus PFD "' + name + '"?\n\nData kondisi untuk PFD ini juga akan tetap ada di DB, hanya diagram yang dihapus.')) return;
+  try {
+    var r = await fetch(API_URL + '/api/pfds/' + encodeURIComponent(CURRENT_UNIT), { method: 'DELETE' });
+    if (!r.ok) throw new Error(await r.text());
+    // Switch back to default
+    document.getElementById('pfd-dropdown').value = '__default__';
+    await onPFDChange('__default__');
+    await loadPFDList();
+  } catch(e) {
+    alert('❌ Gagal menghapus PFD: ' + e.message);
+  }
+}
+
+// ── PFD Upload Modal ──────────────────────────────────────────────────────────
+function openPFDModal() {
+  _pfdSVGContent = null;
+  document.getElementById('pfd-name-input').value = '';
+  document.getElementById('pfd-file-input').value = '';
+  document.getElementById('pfd-dz-icon').textContent = '📂';
+  document.getElementById('pfd-dz-text').textContent = 'Klik atau drag SVG ke sini';
+  document.getElementById('pfd-dropzone').classList.remove('has-file');
+  document.getElementById('pfd-status').className = 'pfd-status';
+  document.getElementById('pfd-status').textContent = '';
+  document.getElementById('pfd-save-btn').disabled = true;
+  document.getElementById('pfd-modal-overlay').classList.add('open');
+}
+
+function closePFDModal() {
+  document.getElementById('pfd-modal-overlay').classList.remove('open');
+  _pfdSVGContent = null;
+}
+
+function onPFDFileSelect(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var dz = document.getElementById('pfd-dropzone');
+  var st = document.getElementById('pfd-status');
+  st.className = 'pfd-status loading';
+  st.textContent = '⏳ Membaca file SVG...';
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var svgText = e.target.result;
+    // Validate it's SVG
+    if (!svgText.trim().startsWith('<') || (!svgText.includes('<svg') && !svgText.includes('<SVG'))) {
+      st.className = 'pfd-status error';
+      st.textContent = '❌ File bukan format SVG yang valid';
+      dz.classList.remove('has-file');
+      return;
+    }
+    _pfdSVGContent = svgText;
+    dz.classList.add('has-file');
+    document.getElementById('pfd-dz-icon').textContent = '✅';
+    document.getElementById('pfd-dz-text').textContent = file.name + ' (' + (svgText.length / 1024).toFixed(1) + ' KB)';
+
+    // Auto-fill name from filename if empty
+    var nameInput = document.getElementById('pfd-name-input');
+    if (!nameInput.value.trim()) {
+      nameInput.value = file.name.replace(/\.svg$/i, '').replace(/[_-]+/g, ' ');
+    }
+
+    // Check if diagram-inner exists
+    var hasDiagramInner = svgText.includes('id="diagram-inner"') || svgText.includes("id='diagram-inner'");
+    if (!hasDiagramInner) {
+      st.className = 'pfd-status error';
+      st.textContent = '⚠️ SVG tidak memiliki <g id="diagram-inner"> — tag & kondisi mungkin tidak terhubung dengan benar, tapi tetap bisa digunakan.';
+    } else {
+      st.className = 'pfd-status success';
+      st.textContent = '✅ SVG valid dengan diagram-inner ditemukan';
+    }
+    document.getElementById('pfd-save-btn').disabled = false;
+  };
+  reader.onerror = function() {
+    st.className = 'pfd-status error';
+    st.textContent = '❌ Gagal membaca file';
+  };
+  reader.readAsText(file);
+}
+
+async function savePFD() {
+  var name = document.getElementById('pfd-name-input').value.trim();
+  if (!name) {
+    document.getElementById('pfd-status').className = 'pfd-status error';
+    document.getElementById('pfd-status').textContent = '❌ Nama PFD harus diisi';
+    return;
+  }
+  if (!_pfdSVGContent) {
+    document.getElementById('pfd-status').className = 'pfd-status error';
+    document.getElementById('pfd-status').textContent = '❌ Pilih file SVG terlebih dahulu';
+    return;
+  }
+
+  var btn = document.getElementById('pfd-save-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Menyimpan...';
+  var st = document.getElementById('pfd-status');
+  st.className = 'pfd-status loading';
+  st.textContent = '⏳ Mengunggah SVG ke server...';
+
+  // Generate ID from name
+  var id = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') + '_' + Date.now();
+
+  // Try to extract viewBox from SVG
+  var viewbox = '-510 -970 4700 2930';
+  var vbMatch = _pfdSVGContent.match(/viewBox\s*=\s*["']([^"']+)["']/i);
+  if (vbMatch) viewbox = vbMatch[1];
+
+  try {
+    if (!API_URL) throw new Error('Tidak ada koneksi ke server — mode offline tidak mendukung upload PFD');
+    var result = await apiPost('/api/pfds', { id, name, svg_content: _pfdSVGContent, viewbox });
+    if (!result) throw new Error('Server tidak merespons');
+
+    st.className = 'pfd-status success';
+    st.textContent = '✅ PFD "' + name + '" berhasil disimpan!';
+    btn.textContent = '✅ Tersimpan';
+
+    // Refresh PFD list and switch to new PFD
+    await loadPFDList();
+    setTimeout(async function() {
+      closePFDModal();
+      document.getElementById('pfd-dropdown').value = id;
+      await onPFDChange(id);
+    }, 800);
+
+  } catch(e) {
+    st.className = 'pfd-status error';
+    st.textContent = '❌ Error: ' + e.message;
+    btn.disabled = false;
+    btn.textContent = '💾 Simpan PFD';
+  }
+}
+
+// ── Main startup ──────────────────────────────────────────────────────────────
+// Load tags + conditions from DB on startup
+(async () => {
+  const sb = document.getElementById('sb');
+  const dbOverlay = document.getElementById('db-loading-overlay');
+
+  // Capture default SVG inner content for later restore
+  var diagInner = document.getElementById('diagram-inner');
+  if (diagInner) DEFAULT_SVG_INNER = diagInner.innerHTML;
+
+  if (API_URL) {
+    // Load PFD list
+    await loadPFDList();
+
+    // Run init for default unit
+    await initForUnit('cdu11');
+
+    if (sb) {
+      sb.textContent = '🟢 Connected to DB';
+      setTimeout(() => { sb.textContent = ''; }, 3000);
+    }
+  } else {
+    console.log('📁 Offline mode — using built-in data');
+    storeOrig();
+    refreshTypeDropdowns();
+
+    document.querySelectorAll('#diagram-inner g').forEach(function(g) {
+      if (g.querySelector('foreignObject')) fixLabelOverflow(g);
+    });
+    document.querySelectorAll('#diagram-inner g[data-tag]').forEach(function(g) {
+      var saved = origColors.get(g);
+      if (!saved) return;
+      saved.forEach(function(s) {
+        if (s.isLine) s.el.setAttribute('stroke', '#000000');
+      });
+    });
+    // Rebind events
+    document.querySelectorAll('#diagram-inner g[data-tag]').forEach(function(g) {
+      g.addEventListener('mouseenter', function(e){ showTip(e,g); });
+      g.addEventListener('mouseleave', hideTip);
+      g.addEventListener('mousemove', mvTip);
+    });
+    applyColors();
+    renderLegend();
+  }
+
+  // Hide loading overlay
+  if (dbOverlay) {
+    dbOverlay.classList.add('hide');
+    setTimeout(function(){ dbOverlay.style.display='none'; }, 350);
+  }
+
   initDone = true;
-  // Auto-push all tags to DB once after init (ensures DB is always in sync)
-  pushAllTags();
 })();
 
 // ══════════════════════════════════════════════════════
@@ -2437,17 +3515,10 @@ function saveEdit() {
   }
   g.setAttribute('data-tip', tip);
 
-  // Update SVG text label inside this g if it shows old tag
+  // Update teks HANYA di dalam objek g ini saja (label diagram tidak ikut berubah)
   g.querySelectorAll('foreignObject div').forEach(function(d) {
     if (d.children.length === 0 && d.textContent.trim() === oldTag) d.textContent = newTag;
   });
-  // Check next sibling for label
-  var next = g.nextElementSibling;
-  if (next && !next.hasAttribute('data-tag')) {
-    next.querySelectorAll('foreignObject div').forEach(function(d) {
-      if (d.children.length === 0 && d.textContent.trim() === oldTag) d.textContent = newTag;
-    });
-  }
 
   // Update BEST_TIPS
   var bt = BEST_TIPS[oldTag] || tip;
@@ -2499,11 +3570,10 @@ function saveEdit() {
 
   // ── Sync to DB ────────────────────────────────────────────────────────
   var uid2 = editTarget.g.getAttribute('data-uid');
-  if (API_URL && uid2) apiPost('/api/tags', { unit: currentPFDUnit, uid: uid2, tag: newTag, type: newType });
+  if (API_URL && uid2) apiPost('/api/tags', { unit: CURRENT_UNIT === '__default__' ? 'cdu11' : CURRENT_UNIT, uid: uid2, tag: newTag, type: newType });
   if (API_URL) {
-    allNewTags.forEach(function(t){
-      if (COND[t]) apiPost('/api/conditions', Object.assign({}, COND[t], { unit: currentPFDUnit }));
-    });
+    const _u7 = CURRENT_UNIT === '__default__' ? 'cdu11' : CURRENT_UNIT;
+    allNewTags.forEach(function(t){ if(COND[t]) apiPost('/api/conditions', Object.assign({unit:_u7}, COND[t])); });
   }
   closeEdit();
 }
@@ -2563,7 +3633,7 @@ function refreshTypeDropdowns() {
 
 
 // Attach double-click to every g[data-uid] — each box is independent
-(function() {
+function bindEditEvents() {
   document.querySelectorAll('#diagram-inner g[data-uid]').forEach(function(g) {
     g.style.cursor = 'pointer';
     g.addEventListener('dblclick', function(e) {
@@ -2572,7 +3642,161 @@ function refreshTypeDropdowns() {
       openEditUID(g.getAttribute('data-uid'));
     });
   });
-})();
+
+  // Label edit dblclick
+  document.querySelectorAll('#diagram-inner g').forEach(function(g) {
+    if (g.hasAttribute('data-uid')) return;
+    if (g.getAttribute('transform') === 'scale(2)') return;
+    var fo = g.querySelector('foreignObject');
+    if (!fo) return;
+    var bEl = g.querySelector('foreignObject b');
+    var fontEl = g.querySelector('foreignObject font');
+    var plainEl = null;
+    if (!bEl && !fontEl) {
+      g.querySelectorAll('foreignObject div').forEach(function(d) {
+        if (d.children.length === 0 && d.textContent.trim()) plainEl = d;
+      });
+    }
+    if (!bEl && !fontEl && !plainEl) return;
+    if (g.getAttribute('data-label-bound')) return; // avoid double-binding
+    g.setAttribute('data-label-bound', '1');
+    g.setAttribute('data-label', 'true');
+    g.style.cursor = 'pointer';
+    g.addEventListener('mouseenter', function() {
+      fo.style.outline = '2px dashed #1565c0';
+      fo.style.borderRadius = '3px';
+    });
+    g.addEventListener('mouseleave', function() {
+      fo.style.outline = '';
+      fo.style.borderRadius = '';
+    });
+    g.addEventListener('dblclick', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      openLabelEdit(g);
+    });
+  });
+}
+bindEditEvents();
+
+
+
+function fixLabelOverflow(g) {
+  g.querySelectorAll('foreignObject div').forEach(function(d) {
+    d.style.maxHeight  = 'none';
+    d.style.overflow   = 'visible';
+    d.style.whiteSpace = 'nowrap';
+  });
+  var fo = g.querySelector('foreignObject');
+  if (fo) {
+    fo.style.overflow = 'visible';
+  }
+}
+
+// (label dblclick now handled in bindEditEvents)
+
+var _labelEditTarget = null;
+
+function openLabelEdit(g) {
+  _labelEditTarget = g;
+  var bEl    = g.querySelector('foreignObject b');
+  var fontEl = g.querySelector('foreignObject font');
+  var plainEl = null;
+  if (!bEl && !fontEl) {
+    g.querySelectorAll('foreignObject div').forEach(function(d) {
+      if (d.children.length === 0 && d.textContent.trim()) plainEl = d;
+    });
+  }
+
+  var currentMain = bEl ? bEl.textContent.trim() : (plainEl ? plainEl.textContent.trim() : '');
+  var currentSub  = fontEl ? fontEl.textContent.trim() : '';
+
+  // ── Pastikan data-lbl-key sudah di-set SEBELUM user simpan,
+  //    pakai teks DOM saat ini (= teks asli kalau belum pernah diedit) ──
+  if (!g.getAttribute('data-lbl-key') && currentMain) {
+    g.setAttribute('data-lbl-key', 'lbl:' + currentMain);
+  }
+
+  // Tampilkan/sembunyikan field sub-label
+  var subRow = document.getElementById('lbl-edit-sub-row');
+  subRow.style.display = (bEl || fontEl) ? '' : 'none';
+
+  document.getElementById('lbl-edit-bold').value = currentMain;
+  document.getElementById('lbl-edit-sub').value  = currentSub;
+  document.getElementById('lbl-edit-overlay').classList.add('open');
+  setTimeout(function() {
+    var inp = document.getElementById('lbl-edit-bold');
+    inp.focus(); inp.select();
+  }, 60);
+}
+
+function closeLabelEdit() {
+  document.getElementById('lbl-edit-overlay').classList.remove('open');
+  _labelEditTarget = null;
+}
+
+function saveLabelEdit() {
+  if (!_labelEditTarget) return;
+  var newMain = document.getElementById('lbl-edit-bold').value.trim();
+  var newSub  = document.getElementById('lbl-edit-sub').value.trim();
+  if (!newMain) { alert('Label tidak boleh kosong'); return; }
+
+  var g      = _labelEditTarget;
+  var bEl    = g.querySelector('foreignObject b');
+  var fontEl = g.querySelector('foreignObject font');
+  var plainEl = null;
+  if (!bEl && !fontEl) {
+    g.querySelectorAll('foreignObject div').forEach(function(d) {
+      if (d.children.length === 0 && d.textContent.trim()) plainEl = d;
+    });
+  }
+
+  // Ambil teks LAMA sebelum DOM diubah
+  var oldMain = bEl ? bEl.textContent.trim() : (plainEl ? plainEl.textContent.trim() : '');
+
+  if (bEl)          bEl.textContent    = newMain;
+  else if (plainEl) plainEl.textContent = newMain;
+
+  if (fontEl) fontEl.textContent = newSub;
+
+  // ── Fix label clipping ──
+  g.querySelectorAll('foreignObject div').forEach(function(d) {
+    if (d.style.maxHeight || d.style.overflow === 'hidden') {
+      d.style.maxHeight = 'none';
+      d.style.overflow  = 'visible';
+    }
+  });
+  var fo = g.querySelector('foreignObject');
+  if (fo) {
+    fo.style.overflow = 'visible';
+    var currentH = parseFloat(fo.getAttribute('height')) || 0;
+    if (currentH > 0 && currentH < 60) fo.setAttribute('height', '100%');
+  }
+
+  // ── Save label ke DB — key sudah di-set di openLabelEdit, tidak berubah walau teks diedit ──
+  var lkey = g.getAttribute('data-lbl-key') || ('lbl:' + (oldMain || newMain));
+  g.setAttribute('data-lbl-key', lkey); // pastikan tersimpan di DOM
+  if (API_URL) {
+    apiPost('/api/labels', { unit: CURRENT_UNIT === '__default__' ? 'cdu11' : CURRENT_UNIT, lbl_key: lkey, main_text: newMain, sub_text: newSub })
+      .then(function(result) {
+        var ind = document.createElement('div');
+        ind.textContent = result ? '✓ Label tersimpan' : '⚠ Label diperbarui (lokal saja)';
+        ind.style.cssText = 'position:fixed;bottom:60px;right:20px;background:' + (result ? '#2e7d32' : '#e65100') + ';color:#fff;padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.2)';
+        document.body.appendChild(ind);
+        setTimeout(function(){ document.body.removeChild(ind); }, 2500);
+      });
+  }
+
+  closeLabelEdit();
+}
+
+document.addEventListener('keydown', function(e) {
+  var ov = document.getElementById('lbl-edit-overlay');
+  if (!ov || !ov.classList.contains('open')) return;
+  if (e.key === 'Escape') { e.stopPropagation(); closeLabelEdit(); }
+  if (e.key === 'Enter')  { e.stopPropagation(); saveLabelEdit(); }
+});
+
 // Enter key saves in edit modal
 var _editTag = document.getElementById('edit-tag');
 if (_editTag) _editTag.addEventListener('keydown', function(e) {
@@ -2583,7 +3807,8 @@ if (_editTypeCustom) _editTypeCustom.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') saveEdit();
 });
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape' && document.getElementById('edit-overlay').classList.contains('open')) {
+  var _ov = document.getElementById('edit-overlay');
+  if (e.key === 'Escape' && _ov && _ov.classList.contains('open')) {
     closeEdit();
   }
 });
@@ -2591,14 +3816,16 @@ document.addEventListener('keydown', function(e) {
 // ══════════════════════════════════════════════════════
 //  DOWNLOAD HTML (bake current tags into static HTML)
 // ══════════════════════════════════════════════════════
-document.getElementById('btn-download').addEventListener('click', async function() {
+var _btnDl = document.getElementById('btn-download');
+if (_btnDl) _btnDl.addEventListener('click', async function() {
   const btn = this;
   btn.disabled = true;
   btn.textContent = '⏳ Menyiapkan...';
 
   // Fetch latest COND from DB first (if online), then bake into HTML
   try {
-    const remote = await apiGet('/api/conditions');
+    const _du = CURRENT_UNIT === '__default__' ? 'cdu11' : CURRENT_UNIT;
+    const remote = await apiGet('/api/conditions?unit=' + encodeURIComponent(_du));
     if (remote && Object.keys(remote).length > 0) {
       Object.assign(COND, remote);
     }
@@ -2649,667 +3876,32 @@ document.getElementById('btn-download').addEventListener('click', async function
 });
 </script>
 
-<!-- ─── PFD Manager Modal ──────────────────────────────── -->
-<div class="edit-overlay" id="pfd-overlay" onclick="if(event.target===this)closePFDManager()">
-  <div class="edit-box" style="width:560px;max-width:96vw">
-    <div class="edit-hdr">
-      <span style="font-size:16px">📂</span>
-      <h3>Kelola PFD</h3>
-      <button class="x-btn" onclick="closePFDManager()">✕</button>
+<!-- ── Label Edit Modal ── -->
+<div id="lbl-edit-overlay" onclick="if(event.target===this)closeLabelEdit()">
+  <div id="lbl-edit-box">
+    <div class="leh">
+      <div class="leh-icon">✏️</div>
+      <h3>Edit Label Diagram</h3>
+      <button class="x-btn" onclick="closeLabelEdit()">✕</button>
     </div>
-    <div class="edit-body" style="padding:0">
-
-      <!-- Tab bar -->
-      <div style="display:flex;border-bottom:2px solid #eee;padding:0 18px;background:#fafafa">
-        <button class="etab active" id="pmtab-list" onclick="switchPMTab('list',this)" style="font-size:11px">📋 Daftar PFD</button>
-        <button class="etab" id="pmtab-upload" onclick="switchPMTab('upload',this)" style="font-size:11px">⬆ Upload PFD Baru</button>
-        <button class="etab" id="pmtab-tag" onclick="switchPMTab('tag',this)" style="font-size:11px">🏷 Tagger</button>
+    <div class="leb">
+      <div class="leb-field">
+        <label><span class="lf-icon">🏷</span> Nama Label</label>
+        <input type="text" id="lbl-edit-bold" placeholder="Contoh: C-102" autocomplete="off">
       </div>
-
-      <!-- Pane: List -->
-      <div id="pmpane-list" style="padding:16px 18px">
-        <div id="pfd-list-content" style="min-height:120px">
-          <div style="color:#aaa;text-align:center;padding:30px;font-size:12px">Memuat...</div>
-        </div>
+      <div class="leb-divider"></div>
+      <div class="leb-field" id="lbl-edit-sub-row">
+        <label><span class="lf-icon">📝</span> Sub-Label / Deskripsi</label>
+        <input type="text" id="lbl-edit-sub" class="sub-input" placeholder="Contoh: LGO STRIPPER" autocomplete="off">
       </div>
-
-      <!-- Pane: Upload -->
-      <div id="pmpane-upload" style="padding:16px 18px;display:none">
-        <div class="edit-row">
-          <label>Nama PFD</label>
-          <input type="text" id="pfd-upload-name" placeholder="Contoh: CDU #12 Revamping">
-        </div>
-        <div class="edit-row">
-          <label>Unit ID <span style="color:#aaa;font-weight:400">(unik, tanpa spasi)</span></label>
-          <input type="text" id="pfd-upload-unit" placeholder="Contoh: cdu12">
-        </div>
-        <div class="edit-row">
-          <label>File SVG <span style="color:#aaa;font-weight:400">(export dari draw.io)</span></label>
-          <div style="border:2px dashed #b3c8f5;border-radius:8px;padding:20px;text-align:center;background:#f8faff;cursor:pointer;position:relative">
-            <input type="file" accept=".svg" id="pfd-upload-file" style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%">
-            <div id="pfd-upload-label" style="font-size:12px;color:#888">🖼 Klik atau drag SVG ke sini</div>
-          </div>
-          <div id="pfd-upload-status" style="font-size:11px;margin-top:6px"></div>
-        </div>
-        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:4px">
-          <button class="edit-cancel" onclick="switchPMTab('list',document.getElementById('pmtab-list'))" style="padding:7px 18px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid #d0d5dd;background:#f5f5f5;color:#666">Batal</button>
-          <button class="edit-save" onclick="uploadPFD()" style="padding:7px 18px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid #1565c0;background:#1565c0;color:#fff">⬆ Upload</button>
-        </div>
-      </div>
-
-      <!-- Pane: Tagger -->
-      <div id="pmpane-tag" style="padding:0;display:none">
-        <div style="padding:10px 18px;border-bottom:1px solid #eee;background:#f8f9fb;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span style="font-size:11px;color:#666">PFD:</span>
-          <select id="tagger-pfd-select" onchange="loadTaggerPFD(this.value)" style="padding:4px 8px;border:1px solid #d0d5dd;border-radius:5px;font-size:11px;flex:1;min-width:140px">
-            <option value="">— Pilih PFD untuk di-tag —</option>
-          </select>
-          <span id="tagger-info" style="font-size:10px;color:#aaa;margin-left:auto"></span>
-        </div>
-        <div style="padding:8px 18px;border-bottom:1px solid #eee;background:#fffbf0;font-size:11px;color:#888">
-          💡 Klik elemen di diagram → assign tag. Elemen yang sudah di-tag berwarna biru.
-        </div>
-        <div id="tagger-svg-wrap" style="width:100%;height:340px;overflow:auto;background:#f5f7fa;position:relative">
-          <div style="color:#aaa;text-align:center;padding:60px;font-size:12px">Pilih PFD untuk mulai tagging</div>
-        </div>
-        <!-- Inline tag form (shown on click) -->
-        <div id="tagger-form" style="display:none;padding:10px 18px;border-top:1px solid #eee;background:#f8faff">
-          <div style="font-size:11px;color:#888;margin-bottom:6px">Assign tag untuk: <b id="tagger-cell-id" style="color:#1565c0;font-family:monospace"></b></div>
-          <div style="display:flex;gap:6px;align-items:center">
-            <input type="text" id="tagger-tag-input" placeholder="Tag (misal: E-101, C-101...)" style="flex:1;padding:6px 10px;border:1.5px solid #d0d5dd;border-radius:6px;font-size:12px;outline:none">
-            <select id="tagger-type-input" style="padding:6px 8px;border:1.5px solid #d0d5dd;border-radius:6px;font-size:11px;outline:none;background:#fff">
-              <option value="">— Tipe —</option>
-              <option>Column / Tower</option>
-              <option>Heat Exchanger</option>
-              <option>Fired Heater</option>
-              <option>Pump</option>
-              <option>Vessel</option>
-              <option>Process Stream</option>
-              <option>Pipe/Line No.</option>
-              <option>Process Line</option>
-            </select>
-            <button onclick="saveTaggerTag()" style="padding:6px 14px;background:#1565c0;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">✓ Simpan</button>
-            <button onclick="clearTaggerTag()" style="padding:6px 10px;background:#fee2e2;color:#c62828;border:1px solid #ef9a9a;border-radius:6px;font-size:11px;cursor:pointer" title="Hapus tag">✕</button>
-          </div>
-        </div>
-      </div>
-
+    </div>
+    <div class="lef">
+      <button class="lef-cancel" onclick="closeLabelEdit()">Batal</button>
+      <button class="lef-save" onclick="saveLabelEdit()"><span>💾</span> Simpan</button>
     </div>
   </div>
 </div>
 
-<script>
-// ══════════════════════════════════════════════════════
-//  TAGGER MODE (halaman utama)
-// ══════════════════════════════════════════════════════
-var taggerModeActive = false;
-var taggerBarCurrentCellId = null;
-var taggerBarCurrentG = null;
-
-function toggleTaggerMode() {
-  taggerModeActive = !taggerModeActive;
-  var btn = document.getElementById('btn-tagger');
-  var bar = document.getElementById('tagger-bar');
-  btn.classList.toggle('primary', taggerModeActive);
-  bar.style.display = taggerModeActive ? 'flex' : 'none';
-  closeTaggerBarForm();
-
-  // Bind/unbind click on all g[data-uid] in current diagram
-  document.querySelectorAll('#diagram-inner g[data-uid]').forEach(function(g) {
-    if (taggerModeActive) {
-      g.addEventListener('click', onTaggerClick);
-      g.style.cursor = 'crosshair';
-    } else {
-      g.removeEventListener('click', onTaggerClick);
-      g.style.cursor = 'pointer';
-      resetTaggerHighlight(g);
-    }
-  });
-}
-
-function onTaggerClick(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  var g = this;
-  var uid = g.getAttribute('data-uid');
-  if (!uid || uid === '0' || uid === '1') return;
-
-  // Reset previous highlight
-  if (taggerBarCurrentG) resetTaggerHighlight(taggerBarCurrentG);
-  taggerBarCurrentG = g;
-  taggerBarCurrentCellId = uid;
-
-  // Highlight selected
-  g.querySelectorAll('rect,ellipse,path,polygon').forEach(function(s) {
-    if (s.getAttribute('pointer-events') === 'stroke') return;
-    if (!s.getAttribute('fill') || s.getAttribute('fill') === 'none') return;
-    s.style.outline = '2px solid #e65100';
-    s.style.fill = '#fff3e0';
-  });
-
-  // Populate form
-  document.getElementById('tagger-bar-cellid').textContent = uid;
-  var existing = taggerTags[uid] || {};
-  // Also check data-tag on element
-  var existTag = g.getAttribute('data-tag') || existing.tag || '';
-  var existType = existing.type || '';
-  document.getElementById('tagger-bar-tag').value = existTag;
-  document.getElementById('tagger-bar-type').value = existType;
-
-  // Show form
-  var form = document.getElementById('tagger-bar-form');
-  form.style.display = 'flex';
-  document.getElementById('tagger-bar-hint').style.display = 'none';
-  document.getElementById('tagger-bar-tag').focus();
-}
-
-function resetTaggerHighlight(g) {
-  g.querySelectorAll('rect,ellipse,path,polygon').forEach(function(s) {
-    s.style.outline = '';
-    s.style.fill = '';
-  });
-}
-
-function closeTaggerBarForm() {
-  if (taggerBarCurrentG) resetTaggerHighlight(taggerBarCurrentG);
-  taggerBarCurrentG = null;
-  taggerBarCurrentCellId = null;
-  var form = document.getElementById('tagger-bar-form');
-  if (form) form.style.display = 'none';
-  var hint = document.getElementById('tagger-bar-hint');
-  if (hint) hint.style.display = '';
-}
-
-async function saveTaggerBarTag() {
-  if (!taggerBarCurrentCellId) return;
-  var tag = document.getElementById('tagger-bar-tag').value.trim();
-  var type = document.getElementById('tagger-bar-type').value;
-  var sb = document.getElementById('sb');
-  if (!tag) { alert('Tag tidak boleh kosong'); return; }
-
-  try {
-    await apiPost('/api/tags', { unit: currentPFDUnit, uid: taggerBarCurrentCellId, tag, type });
-
-    // Update element in diagram
-    var g = taggerBarCurrentG;
-    if (g) {
-      g.setAttribute('data-tag', tag);
-      var tip = (type ? 'Type: ' + type + '\n' : '') + 'Tag: ' + tag;
-      g.setAttribute('data-tip', tip);
-      // Re-bind tooltip for this element
-      g.addEventListener('mouseenter', function(e){ showTip(e,g); });
-      g.addEventListener('mouseleave', hideTip);
-      g.addEventListener('mousemove', mvTip);
-    }
-
-    // Update taggerTags memory
-    taggerTags[taggerBarCurrentCellId] = { tag, type };
-
-    if (sb) { sb.textContent = '✅ Tag "' + tag + '" disimpan'; setTimeout(function(){ sb.textContent=''; }, 2000); }
-    closeTaggerBarForm();
-  } catch(e) {
-    if (sb) { sb.textContent = '❌ Gagal simpan tag'; setTimeout(function(){ sb.textContent=''; }, 2000); }
-  }
-}
-
-async function deleteTaggerBarTag() {
-  if (!taggerBarCurrentCellId) return;
-  if (!confirm('Hapus tag untuk elemen ini?')) return;
-  try {
-    await fetch('/api/tags/' + currentPFDUnit + '/' + taggerBarCurrentCellId, { method: 'DELETE' });
-    var g = taggerBarCurrentG;
-    if (g) {
-      g.removeAttribute('data-tag');
-      g.removeAttribute('data-tip');
-    }
-    delete taggerTags[taggerBarCurrentCellId];
-    closeTaggerBarForm();
-  } catch(e) { alert('Gagal menghapus tag'); }
-}
-
-// ══════════════════════════════════════════════════════
-//  PFD MANAGER
-// ══════════════════════════════════════════════════════
-var currentPFDUnit = 'cdu11'; // default unit (existing PFD)
-var taggerCurrentUnit = null;
-var taggerCurrentCellId = null;
-var taggerTags = {}; // cellId → {tag, type}
-
-function openPFDManager() {
-  document.getElementById('pfd-overlay').classList.add('open');
-  switchPMTab('list', document.getElementById('pmtab-list'));
-  loadPFDList();
-}
-function closePFDManager() {
-  document.getElementById('pfd-overlay').classList.remove('open');
-}
-function switchPMTab(tab, btn) {
-  ['list','upload','tag'].forEach(function(t) {
-    document.getElementById('pmpane-' + t).style.display = t === tab ? '' : 'none';
-    document.getElementById('pmtab-' + t).classList.toggle('active', t === tab);
-  });
-  if (tab === 'tag') loadTaggerPFDOptions();
-}
-
-// ── PFD List ───────────────────────────────────────────
-async function loadPFDList() {
-  var el = document.getElementById('pfd-list-content');
-  el.innerHTML = '<div style="color:#aaa;text-align:center;padding:20px;font-size:12px">Memuat...</div>';
-  try {
-    var pfds = await apiGet('/api/pfds');
-    if (!pfds || !pfds.length) {
-      el.innerHTML = '<div style="color:#aaa;text-align:center;padding:30px;font-size:12px">Belum ada PFD. Upload PFD pertama kamu!</div>';
-      return;
-    }
-    el.innerHTML = pfds.map(function(p) {
-      var date = p.uploaded_at ? new Date(p.uploaded_at).toLocaleDateString('id-ID') : '-';
-      var isActive = p.unit === currentPFDUnit;
-      return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid ' + (isActive ? '#1565c0' : '#e8edf5') + ';border-radius:8px;margin-bottom:8px;background:' + (isActive ? '#f0f4ff' : '#fff') + '">' +
-        '<div style="flex:1">' +
-          '<div style="font-size:12px;font-weight:600;color:#333">' + p.name + (isActive ? ' <span style="font-size:10px;color:#1565c0;font-weight:400">(aktif)</span>' : '') + '</div>' +
-          '<div style="font-size:10px;color:#aaa;margin-top:2px">Unit: <code>' + p.unit + '</code> · Upload: ' + date + '</div>' +
-        '</div>' +
-        '<button onclick="switchPFD(\'' + p.unit + '\');closePFDManager()" style="padding:4px 12px;background:#1565c0;color:#fff;border:none;border-radius:5px;font-size:11px;cursor:pointer' + (isActive ? ';opacity:.5;pointer-events:none' : '') + '">' + (isActive ? '✓ Aktif' : '▶ Buka') + '</button>' +
-        '<button onclick="deletePFD(\'' + p.unit + '\',\'' + p.name + '\')" style="padding:4px 10px;background:#fee2e2;color:#c62828;border:1px solid #ef9a9a;border-radius:5px;font-size:11px;cursor:pointer">🗑</button>' +
-      '</div>';
-    }).join('');
-  } catch(e) {
-    el.innerHTML = '<div style="color:#c62828;font-size:11px;padding:10px">Gagal memuat daftar PFD</div>';
-  }
-}
-
-// ── Upload PFD ─────────────────────────────────────────
-document.getElementById('pfd-upload-file').addEventListener('change', function() {
-  var f = this.files[0];
-  if (f) document.getElementById('pfd-upload-label').textContent = '✓ ' + f.name;
-});
-
-async function uploadPFD() {
-  var name = document.getElementById('pfd-upload-name').value.trim();
-  var unit = document.getElementById('pfd-upload-unit').value.trim().toLowerCase().replace(/\s+/g,'_');
-  var file = document.getElementById('pfd-upload-file').files[0];
-  var status = document.getElementById('pfd-upload-status');
-
-  if (!name || !unit) { status.style.color='#c62828'; status.textContent='❌ Nama dan Unit ID wajib diisi'; return; }
-  if (!file) { status.style.color='#c62828'; status.textContent='❌ Pilih file SVG terlebih dahulu'; return; }
-  if (!file.name.endsWith('.svg')) { status.style.color='#c62828'; status.textContent='❌ Hanya file .svg yang diterima'; return; }
-
-  status.style.color='#888'; status.textContent='⏳ Membaca file...';
-
-  var reader = new FileReader();
-  reader.onload = async function(e) {
-    var svgContent = e.target.result;
-    // Inject data-uid from draw.io data-cell-id
-    svgContent = injectDrawioUIDs(svgContent);
-    status.textContent = '⏳ Mengupload ke server...';
-    try {
-      var result = await apiPost('/api/pfds', { unit, name, svg_content: svgContent });
-      if (result && result.unit) {
-        status.style.color='#2e7d32'; status.textContent='✅ Berhasil diupload!';
-        // Refresh dropdown
-        await loadPFDDropdown();
-        // Reset form
-        setTimeout(function() {
-          document.getElementById('pfd-upload-name').value = '';
-          document.getElementById('pfd-upload-unit').value = '';
-          document.getElementById('pfd-upload-file').value = '';
-          document.getElementById('pfd-upload-label').textContent = '🖼 Klik atau drag SVG ke sini';
-          status.textContent = '';
-          switchPMTab('list', document.getElementById('pmtab-list'));
-          loadPFDList();
-        }, 1200);
-      } else {
-        status.style.color='#c62828'; status.textContent='❌ Upload gagal';
-      }
-    } catch(err) {
-      status.style.color='#c62828'; status.textContent='❌ Error: ' + err.message;
-    }
-  };
-  reader.readAsText(file);
-}
-
-// Inject data-uid into draw.io SVG elements using data-cell-id
-function injectDrawioUIDs(svgString) {
-  var parser = new DOMParser();
-  var doc = parser.parseFromString(svgString, 'image/svg+xml');
-  var elements = doc.querySelectorAll('g[data-cell-id]');
-  elements.forEach(function(g) {
-    var cellId = g.getAttribute('data-cell-id');
-    if (cellId && cellId !== '0' && cellId !== '1') {
-      g.setAttribute('data-uid', cellId);
-      // Check if it's a vertex (shape) or edge (connector)
-      // Shapes have rect/ellipse/path as direct children of inner g
-      var inner = g.querySelector('g');
-      if (inner) {
-        var hasShape = inner.querySelector('rect,ellipse,path,polygon');
-        var hasEdgePath = inner.querySelector('path[fill="none"]');
-        if (hasShape && !hasEdgePath) {
-          g.style.cursor = 'pointer';
-        } else {
-          g.style.cursor = 'pointer'; // edges (pipes) also taggable
-        }
-      }
-    }
-  });
-  var s = new XMLSerializer();
-  return s.serializeToString(doc.documentElement);
-}
-
-async function deletePFD(unit, name) {
-  if (!confirm('Hapus PFD "' + name + '" beserta semua tags dan conditions-nya?')) return;
-  try {
-    await fetch('/api/pfds/' + unit, { method: 'DELETE' });
-    loadPFDList();
-    loadPFDDropdown();
-    if (currentPFDUnit === unit) {
-      document.getElementById('pfd-select').value = '';
-    }
-  } catch(e) { alert('Gagal menghapus PFD'); }
-}
-
-// ── Dropdown ───────────────────────────────────────────
-async function loadPFDDropdown() {
-  if (!API_URL) return;
-  try {
-    var pfds = await apiGet('/api/pfds');
-    var sel = document.getElementById('pfd-select');
-    var cur = sel.value;
-    // Keep first placeholder option
-    while (sel.options.length > 1) sel.remove(1);
-    if (pfds && pfds.length) {
-      pfds.forEach(function(p) {
-        var opt = document.createElement('option');
-        opt.value = p.unit;
-        opt.textContent = p.name;
-        sel.appendChild(opt);
-      });
-    }
-    // Add current unit (CDU11 built-in) if not in list
-    var hasCurrent = pfds && pfds.some(function(p){ return p.unit === currentPFDUnit; });
-    if (!hasCurrent && currentPFDUnit === 'cdu11') {
-      var opt = document.createElement('option');
-      opt.value = 'cdu11';
-      opt.textContent = 'CDU #11 (built-in)';
-      sel.insertBefore(opt, sel.options[1]);
-    }
-    if (cur) sel.value = cur;
-  } catch(e) {}
-}
-
-// ── Switch PFD ─────────────────────────────────────────
-async function switchPFD(unit) {
-  if (!unit || unit === currentPFDUnit) return;
-
-  // If switching to built-in CDU11 (embedded SVG), just reload page
-  if (unit === 'cdu11') {
-    window.location.reload();
-    return;
-  }
-
-  var sb = document.getElementById('sb');
-  if (sb) sb.textContent = '⏳ Memuat PFD...';
-
-  try {
-    // Load PFD SVG from DB
-    var pfd = await apiGet('/api/pfds/' + unit);
-    if (!pfd || !pfd.svg_content) {
-      alert('SVG untuk PFD ini tidak ditemukan'); return;
-    }
-
-    currentPFDUnit = unit;
-    document.getElementById('pfd-select').value = unit;
-
-    // Replace diagram inner content
-    var inner = document.getElementById('diagram-inner');
-    if (!inner) { alert('Elemen diagram tidak ditemukan'); return; }
-
-    // Parse SVG and extract inner content
-    var parser = new DOMParser();
-    var svgDoc = parser.parseFromString(pfd.svg_content, 'image/svg+xml');
-    var newSvg = svgDoc.documentElement;
-
-    // Update viewBox
-    var vb = newSvg.getAttribute('viewBox');
-    var w = newSvg.getAttribute('width') ? parseInt(newSvg.getAttribute('width')) : 800;
-    var h = newSvg.getAttribute('height') ? parseInt(newSvg.getAttribute('height')) : 600;
-    if (vb) {
-      var parts = vb.split(' ').map(Number);
-      vbX=parts[0]; vbY=parts[1]; vbW=parts[2]; vbH=parts[3];
-    } else {
-      vbX=0; vbY=0; vbW=w; vbH=h;
-    }
-
-    // Replace inner SVG content
-    inner.innerHTML = '';
-    Array.from(newSvg.childNodes).forEach(function(n) {
-      if (n.nodeName !== 'defs' && n.nodeName !== 'rect') {
-        inner.appendChild(n.cloneNode(true));
-      }
-    });
-
-    applyVB();
-
-    // Update header subtitle
-    var sub = document.getElementById('hdr-subtitle');
-    if (sub) sub.textContent = pfd.name;
-
-    // Load tags & conditions for this unit
-    COND = {};
-    var remoteTags = await apiGet('/api/tags?unit=' + unit);
-    if (remoteTags) {
-      Object.values(remoteTags).forEach(function(row) {
-        var g = document.querySelector('#diagram-inner g[data-uid="' + row.uid + '"]');
-        if (!g) return;
-        g.setAttribute('data-tag', row.tag);
-        var tip = (row.type ? 'Type: ' + row.type + '\n' : '') + 'Tag: ' + row.tag;
-        g.setAttribute('data-tip', tip);
-      });
-    }
-    var remoteCond = await apiGet('/api/conditions?unit=' + unit);
-    if (remoteCond) Object.assign(COND, remoteCond);
-
-    // CRITICAL: store original colors AFTER tags applied so applyColors works
-    storeOrig();
-
-    // Re-bind tooltip events
-    document.getElementById('diag-svg').querySelectorAll('g[data-uid]').forEach(function(g) {
-      g.addEventListener('mouseenter', function(e){ showTip(e,g); });
-      g.addEventListener('mouseleave', hideTip);
-      g.addEventListener('mousemove', mvTip);
-    });
-
-    // Re-bind dblclick (same as CDU11)
-    document.querySelectorAll('#diagram-inner g[data-uid]').forEach(function(g) {
-      g.style.cursor = 'pointer';
-      g.addEventListener('dblclick', function(e) {
-        e.preventDefault(); e.stopPropagation();
-        openEditUID(g.getAttribute('data-uid'));
-      });
-    });
-
-    applyColors();
-    renderLegend();
-    refreshTypeDropdowns();
-
-    if (sb) { sb.textContent = '✅ PFD dimuat: ' + pfd.name; setTimeout(function(){ sb.textContent=''; }, 3000); }
-
-  } catch(e) {
-    console.error(e);
-    if (sb) sb.textContent = '❌ Gagal memuat PFD';
-  }
-}
-
-// ── Tagger ─────────────────────────────────────────────
-async function loadTaggerPFDOptions() {
-  try {
-    var pfds = await apiGet('/api/pfds');
-    var sel = document.getElementById('tagger-pfd-select');
-    while (sel.options.length > 1) sel.remove(1);
-    if (pfds && pfds.length) {
-      pfds.forEach(function(p) {
-        var opt = document.createElement('option');
-        opt.value = p.unit;
-        opt.textContent = p.name;
-        sel.appendChild(opt);
-      });
-    }
-  } catch(e) {}
-}
-
-async function loadTaggerPFD(unit) {
-  if (!unit) return;
-  taggerCurrentUnit = unit;
-  taggerTags = {};
-  var wrap = document.getElementById('tagger-svg-wrap');
-  var info = document.getElementById('tagger-info');
-  wrap.innerHTML = '<div style="color:#aaa;text-align:center;padding:40px;font-size:12px">Memuat SVG...</div>';
-
-  try {
-    var pfd = await apiGet('/api/pfds/' + unit);
-    if (!pfd || !pfd.svg_content) { wrap.innerHTML = '<div style="color:#c62828;padding:20px;font-size:12px">SVG tidak ditemukan</div>'; return; }
-
-    // Load existing tags for this unit
-    var remoteTags = await apiGet('/api/tags?unit=' + unit);
-    if (remoteTags) {
-      Object.values(remoteTags).forEach(function(row) {
-        taggerTags[row.uid] = { tag: row.tag, type: row.type || '' };
-      });
-    }
-
-    wrap.innerHTML = pfd.svg_content;
-    var svgEl = wrap.querySelector('svg');
-    if (!svgEl) { wrap.innerHTML = '<div style="color:#c62828;padding:20px;font-size:12px">Gagal parse SVG</div>'; return; }
-
-    // Scale SVG to fit wrap
-    svgEl.style.width = '100%';
-    svgEl.style.height = 'auto';
-    svgEl.style.display = 'block';
-
-    // Apply existing tags visual + attach click
-    var tagged = 0;
-    svgEl.querySelectorAll('g[data-uid]').forEach(function(g) {
-      var uid = g.getAttribute('data-uid');
-      if (!uid || uid === '0' || uid === '1') return;
-      g.style.cursor = 'pointer';
-      // Highlight already-tagged elements
-      if (taggerTags[uid]) {
-        highlightTaggerCell(g, true);
-        tagged++;
-      }
-      g.addEventListener('click', function(e) {
-        e.stopPropagation();
-        selectTaggerCell(uid, g);
-      });
-    });
-
-    info.textContent = tagged + ' sudah di-tag dari ' + Object.keys(taggerTags).length + ' total';
-
-  } catch(e) {
-    wrap.innerHTML = '<div style="color:#c62828;padding:20px;font-size:12px">Error: ' + e.message + '</div>';
-  }
-}
-
-function selectTaggerCell(cellId, gEl) {
-  taggerCurrentCellId = cellId;
-  var existing = taggerTags[cellId] || {};
-  document.getElementById('tagger-cell-id').textContent = cellId;
-  document.getElementById('tagger-tag-input').value = existing.tag || '';
-  document.getElementById('tagger-type-input').value = existing.type || '';
-  document.getElementById('tagger-form').style.display = '';
-  document.getElementById('tagger-tag-input').focus();
-
-  // Highlight selected
-  var wrap = document.getElementById('tagger-svg-wrap');
-  wrap.querySelectorAll('g[data-uid]').forEach(function(g) {
-    var uid = g.getAttribute('data-uid');
-    if (uid === cellId) {
-      highlightTaggerCell(g, 'selected');
-    } else if (taggerTags[uid]) {
-      highlightTaggerCell(g, true);
-    } else {
-      highlightTaggerCell(g, false);
-    }
-  });
-}
-
-function highlightTaggerCell(g, state) {
-  // state: true=tagged(blue), 'selected'=active(orange), false=reset
-  g.querySelectorAll('rect,ellipse,path,polygon').forEach(function(s) {
-    if (s.getAttribute('fill') === 'none' || s.getAttribute('pointer-events') === 'stroke') return;
-    if (state === 'selected') {
-      s.style.fill = '#fff3e0';
-      s.style.stroke = '#e65100';
-      s.style.strokeWidth = '2';
-    } else if (state === true) {
-      s.style.fill = '#e3f2fd';
-      s.style.stroke = '#1565c0';
-      s.style.strokeWidth = '1.5';
-    } else {
-      s.style.fill = '';
-      s.style.stroke = '';
-      s.style.strokeWidth = '';
-    }
-  });
-}
-
-async function saveTaggerTag() {
-  if (!taggerCurrentCellId || !taggerCurrentUnit) return;
-  var tag = document.getElementById('tagger-tag-input').value.trim();
-  var type = document.getElementById('tagger-type-input').value;
-  if (!tag) { alert('Tag tidak boleh kosong'); return; }
-
-  try {
-    await apiPost('/api/tags', { unit: taggerCurrentUnit, uid: taggerCurrentCellId, tag, type });
-    taggerTags[taggerCurrentCellId] = { tag, type };
-
-    // Update highlight in tagger modal
-    var wrap = document.getElementById('tagger-svg-wrap');
-    var g = wrap.querySelector('g[data-uid="' + taggerCurrentCellId + '"]');
-    if (g) highlightTaggerCell(g, true);
-
-    // If same unit as main diagram, update main diagram element too
-    if (taggerCurrentUnit === currentPFDUnit) {
-      var mainG = document.querySelector('#diagram-inner g[data-uid="' + taggerCurrentCellId + '"]');
-      if (mainG) {
-        mainG.setAttribute('data-tag', tag);
-        var tip = (type ? 'Type: ' + type + '\n' : '') + 'Tag: ' + tag;
-        mainG.setAttribute('data-tip', tip);
-        mainG.addEventListener('mouseenter', function(e){ showTip(e,mainG); });
-        mainG.addEventListener('mouseleave', hideTip);
-        mainG.addEventListener('mousemove', mvTip);
-      }
-    }
-
-    var tagged = Object.keys(taggerTags).length;
-    document.getElementById('tagger-info').textContent = tagged + ' sudah di-tag';
-    document.getElementById('tagger-form').style.display = 'none';
-    taggerCurrentCellId = null;
-  } catch(e) { alert('Gagal menyimpan: ' + e.message); }
-}
-
-async function clearTaggerTag() {
-  if (!taggerCurrentCellId || !taggerCurrentUnit) return;
-  if (!confirm('Hapus tag untuk elemen ini?')) return;
-  try {
-    await fetch('/api/tags/' + taggerCurrentUnit + '/' + taggerCurrentCellId, { method: 'DELETE' });
-    delete taggerTags[taggerCurrentCellId];
-    var wrap = document.getElementById('tagger-svg-wrap');
-    var g = wrap.querySelector('g[data-uid="' + taggerCurrentCellId + '"]');
-    if (g) highlightTaggerCell(g, false);
-    document.getElementById('tagger-form').style.display = 'none';
-    taggerCurrentCellId = null;
-  } catch(e) { alert('Gagal menghapus'); }
-}
-
-// Init: load PFD dropdown on startup
-if (API_URL) {
-  loadPFDDropdown().then(function() {
-    // Set dropdown to current unit
-    var sel = document.getElementById('pfd-select');
-    sel.value = currentPFDUnit;
-  });
-}
-</script>
 
 </body>
 </html>
