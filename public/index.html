@@ -2281,16 +2281,26 @@ async function onPFDChange(pfdId) {
       swText.textContent = '⏳ Merender diagram...';
       var inner = document.getElementById('diagram-inner');
 
+      // Strip XML declaration & DOCTYPE agar DOMParser tidak gagal (draw.io export)
+      var svgRaw = pfdData.svg_content
+        .replace(/<\?xml[^?]*\?>/i, '')
+        .replace(/<!DOCTYPE[^>]*>/gi, '')
+        .trim();
+
       // Parse SVG content and extract diagram-inner contents
-      var parsed = new DOMParser().parseFromString(pfdData.svg_content, 'image/svg+xml');
-      var srcInner = parsed.getElementById('diagram-inner');
-      if (srcInner) {
-        inner.innerHTML = srcInner.innerHTML;
+      var parsed = new DOMParser().parseFromString(svgRaw, 'image/svg+xml');
+      var parseErr = parsed.querySelector('parsererror');
+      if (parseErr) {
+        inner.innerHTML = svgRaw;
       } else {
-        // No diagram-inner wrapper — use full SVG body
-        var svgEl = parsed.querySelector('svg');
-        if (svgEl) inner.innerHTML = svgEl.innerHTML;
-        else inner.innerHTML = pfdData.svg_content;
+        var srcInner = parsed.getElementById('diagram-inner');
+        if (srcInner) {
+          inner.innerHTML = srcInner.innerHTML;
+        } else {
+          var svgEl = parsed.querySelector('svg');
+          if (svgEl) inner.innerHTML = svgEl.innerHTML;
+          else inner.innerHTML = svgRaw;
+        }
       }
 
       // Parse viewbox — coba dari DB dulu, lalu dari SVG langsung, lalu fallback
@@ -2408,6 +2418,9 @@ function onPFDFileSelect(input) {
   var reader = new FileReader();
   reader.onload = function(e) {
     var svgText = e.target.result;
+    // Strip XML declaration & DOCTYPE (draw.io export format)
+    svgText = svgText.replace(/<\?xml[^?]*\?>/i, '').trim();
+    svgText = svgText.replace(/<!DOCTYPE[^>]*>/gi, '').trim();
     // Validate it's SVG
     if (!svgText.trim().startsWith('<') || (!svgText.includes('<svg') && !svgText.includes('<SVG'))) {
       st.className = 'pfd-status error';
