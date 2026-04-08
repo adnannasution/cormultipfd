@@ -2870,7 +2870,7 @@ async function loadPFDList() {
     // Keep __default__ option
     while (sel.options.length > 1) sel.remove(1);
     list.forEach(function(pfd) {
-      if (pfd.is_default) return; // skip if server marks as default (we use __default__ for embedded)
+
       var opt = document.createElement('option');
       opt.value = pfd.id;
       opt.textContent = pfd.name;
