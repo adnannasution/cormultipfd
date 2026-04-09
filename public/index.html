@@ -2332,7 +2332,16 @@ async function onPFDChange(pfdId, suppressOverlay) {
           if (!hostDefs) { hostDefs = document.createElementNS('http://www.w3.org/2000/svg','defs'); hostSVG.insertBefore(hostDefs, hostSVG.firstChild); }
           var srcDefs = parsed.querySelector('defs');
           if (srcDefs) hostDefs.innerHTML += srcDefs.innerHTML;
-          inner.innerHTML = srcInner.innerHTML;
+          // Hapus semua child lama
+          while (inner.firstChild) inner.removeChild(inner.firstChild);
+          // Import dan append setiap child dari srcInner
+          Array.from(srcInner.childNodes).forEach(function(node) {
+            var imported = document.importNode(node, true);
+            inner.appendChild(imported);
+          });
+          dbg('diagram-inner childCount: ' + inner.childElementCount);
+          dbg('diagram-inner innerHTML length: ' + inner.innerHTML.length);
+          dbg('first child tag: ' + (inner.firstElementChild ? inner.firstElementChild.tagName : 'NONE'));
         } else {
           // SVG tidak punya diagram-inner — pindahkan defs ke host SVG, inject semua elemen non-defs ke inner
           var svgEl = parsed.querySelector('svg');
@@ -2343,21 +2352,18 @@ async function onPFDChange(pfdId, suppressOverlay) {
             // Pindahkan semua <defs> dari SVG sumber ke host defs
             var srcDefs = svgEl.querySelector('defs');
             if (srcDefs) hostDefs.innerHTML += srcDefs.innerHTML;
-            // Inject semua child selain <defs> ke diagram-inner
-            var nonDefsHTML = '';
-            var serializer = new XMLSerializer();
-            svgEl.childNodes.forEach(function(node) {
-              if (node.nodeName.toLowerCase() !== 'defs') {
-                nonDefsHTML += serializer.serializeToString(node);
+            // Import semua child selain <defs> ke diagram-inner pakai importNode
+            while (inner.firstChild) inner.removeChild(inner.firstChild);
+            Array.from(svgEl.childNodes).forEach(function(node) {
+              if (node.nodeName.toLowerCase() === 'defs') return;
+              var imported = document.importNode(node, true);
+              // Skip rect background width/height 100%
+              if (imported.nodeName === 'rect' &&
+                 (imported.getAttribute('width') === '100%' || imported.getAttribute('height') === '100%')) {
+                dbg('Skipping bg rect');
+                return;
               }
-            });
-            inner.innerHTML = nonDefsHTML;
-            // Hapus rect background (width/height 100%) yang menimpa konten
-            inner.querySelectorAll('rect').forEach(function(r) {
-              if (r.getAttribute('width') === '100%' || r.getAttribute('height') === '100%') {
-                dbg('Removing bg rect: ' + r.outerHTML.substring(0,60));
-                r.remove();
-              }
+              inner.appendChild(imported);
             });
             dbg('childCount after inject: ' + inner.childElementCount);
           } else {
