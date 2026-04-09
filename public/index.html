@@ -1317,7 +1317,7 @@ document.getElementById('diag-svg').querySelectorAll('g[data-tag]').forEach(g=>{
 //  PAN & ZOOM  — fixed sensitivity
 // ══════════════════════════════════════════════════════
 const dc=document.getElementById('dc');
-const svg=document.getElementById('diag-svg');
+let svg=document.getElementById('diag-svg');
 const ziEl=document.getElementById('zi');
 
 // ViewBox in SVG coordinate space
@@ -2302,69 +2302,49 @@ async function onPFDChange(pfdId, suppressOverlay) {
       if (!pfdData || !pfdData.svg_content) throw new Error('SVG content kosong');
 
       swText.textContent = '⏳ Merender diagram...';
-      var inner = document.getElementById('diagram-inner');
-
-      // Strip XML declaration & DOCTYPE agar DOMParser tidak gagal (draw.io export)
+      // ── Pendekatan baru: inject seluruh SVG langsung ke div container ──
+      // Ini menghindari masalah namespace saat inject elemen ke dalam SVG lain
       var svgRaw = pfdData.svg_content
         .replace(/<\?xml[^?]*\?>/i, '')
         .replace(/<!DOCTYPE[^>]*>/gi, '')
         .trim();
 
-      // Parse SVG content and extract diagram-inner contents
-      var parsed = new DOMParser().parseFromString(svgRaw, 'image/svg+xml');
-      var parseErr = parsed.querySelector('parsererror');
-      dbg('parseErr: ' + !!parseErr);
-      if (parseErr) {
-        inner.innerHTML = svgRaw;
-      } else {
-        var srcInner = parsed.getElementById('diagram-inner');
-        dbg('has diagram-inner: ' + !!srcInner);
-        if (srcInner) {
-          // SVG punya diagram-inner — inject defs dulu lalu isi inner
-          var hostSVG = document.getElementById('diag-svg');
-          var hostDefs = hostSVG.querySelector('defs');
-          if (!hostDefs) { hostDefs = document.createElementNS('http://www.w3.org/2000/svg','defs'); hostSVG.insertBefore(hostDefs, hostSVG.firstChild); }
-          var srcDefs = parsed.querySelector('defs');
-          if (srcDefs) hostDefs.innerHTML += srcDefs.innerHTML;
-          // Hapus semua child lama
-          while (inner.firstChild) inner.removeChild(inner.firstChild);
-          // Import dan append setiap child dari srcInner
-          Array.from(srcInner.childNodes).forEach(function(node) {
-            var imported = document.importNode(node, true);
-            inner.appendChild(imported);
-          });
-          dbg('diagram-inner childCount: ' + inner.childElementCount);
-          dbg('diagram-inner innerHTML length: ' + inner.innerHTML.length);
-          dbg('first child tag: ' + (inner.firstElementChild ? inner.firstElementChild.tagName : 'NONE'));
-        } else {
-          // SVG tidak punya diagram-inner — pindahkan defs ke host SVG, inject semua elemen non-defs ke inner
-          var svgEl = parsed.querySelector('svg');
-          if (svgEl) {
-            var hostSVG = document.getElementById('diag-svg');
-            var hostDefs = hostSVG.querySelector('defs');
-            if (!hostDefs) { hostDefs = document.createElementNS('http://www.w3.org/2000/svg','defs'); hostSVG.insertBefore(hostDefs, hostSVG.firstChild); }
-            // Pindahkan semua <defs> dari SVG sumber ke host defs
-            var srcDefs = svgEl.querySelector('defs');
-            if (srcDefs) hostDefs.innerHTML += srcDefs.innerHTML;
-            // Import semua child selain <defs> ke diagram-inner pakai importNode
-            while (inner.firstChild) inner.removeChild(inner.firstChild);
-            Array.from(svgEl.childNodes).forEach(function(node) {
-              if (node.nodeName.toLowerCase() === 'defs') return;
-              var imported = document.importNode(node, true);
-              // Skip rect background width/height 100%
-              if (imported.nodeName === 'rect' &&
-                 (imported.getAttribute('width') === '100%' || imported.getAttribute('height') === '100%')) {
-                dbg('Skipping bg rect');
-                return;
-              }
-              inner.appendChild(imported);
-            });
-            dbg('childCount after inject: ' + inner.childElementCount);
-          } else {
-            inner.innerHTML = svgRaw;
-          }
+      // Parse viewbox dulu sebelum modifikasi string
+      var vbSet = false;
+      if (pfdData.viewbox) {
+        var vbParts = pfdData.viewbox.split(/\s+/).map(Number);
+        var isOldDefault = (pfdData.viewbox === '-510 -970 4700 2930');
+        if (vbParts.length === 4 && !vbParts.some(isNaN) && !isOldDefault) {
+          vbX=vbParts[0]; vbY=vbParts[1]; vbW=vbParts[2]; vbH=vbParts[3]; vbSet=true;
         }
       }
+      if (!vbSet) {
+        var vbm = pfdData.svg_content.match(/viewBox\s*=\s*["']([^"']+)["']/i);
+        if (vbm) { var vbp=vbm[1].split(/\s+/).map(Number); if(vbp.length===4&&!vbp.some(isNaN)){vbX=vbp[0];vbY=vbp[1];vbW=vbp[2];vbH=vbp[3];vbSet=true;} }
+      }
+      if (!vbSet) {
+        var wm=pfdData.svg_content.match(/\bwidth="([\d.]+)px"/i), hm=pfdData.svg_content.match(/\bheight="([\d.]+)px"/i);
+        if(wm&&hm){vbX=0;vbY=0;vbW=parseFloat(wm[1]);vbH=parseFloat(hm[1]);vbSet=true;}
+      }
+      if (!vbSet) { vbX=0; vbY=0; vbW=1100; vbH=600; }
+
+      // Modifikasi SVG string: set id, class, hapus width/height px, set viewBox
+      var modSVG = svgRaw.replace(/<svg([\s\S]*?)>/i, function(m, attrs) {
+        attrs = attrs.replace(/\s+id="[^"]*"/gi,'').replace(/\s+class="[^"]*"/gi,'');
+        attrs = attrs.replace(/\s+width="[^"]*"/gi,'').replace(/\s+height="[^"]*"/gi,'');
+        attrs = attrs.replace(/\s+viewBox="[^"]*"/gi,'').replace(/\s+preserveAspectRatio="[^"]*"/gi,'');
+        return '<svg' + attrs + ' id="diag-svg" class="diag-svg-el" viewBox="'+vbX+' '+vbY+' '+vbW+' '+vbH+'" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;display:block;user-select:none">';
+      });
+
+      // Inject ke container
+      var dc = document.getElementById('dc');
+      dc.innerHTML = modSVG + '<div id="zoom-box-rect"></div>';
+
+      // Re-assign global svg reference
+      svg = document.getElementById('diag-svg');
+      var inner = document.getElementById('diagram-inner');
+      dbg('inject done, inner: ' + (inner ? 'found childCount='+inner.childElementCount : 'NOT FOUND'));
+      dbg('svg BCR after inject: ' + Math.round(svg.getBoundingClientRect().width) + 'x' + Math.round(svg.getBoundingClientRect().height));
 
       // Parse viewbox — coba dari DB dulu, lalu dari SVG langsung, lalu fallback
       var vbSet = false;
@@ -2388,40 +2368,9 @@ async function onPFDChange(pfdId, suppressOverlay) {
           }
         }
       }
-      if (!vbSet) {
-        // Coba dari width/height SVG (mxGraph style)
-        var wm = pfdData.svg_content.match(/\bwidth="([\d.]+)px"/i);
-        var hm = pfdData.svg_content.match(/\bheight="([\d.]+)px"/i);
-        if (wm && hm) {
-          vbX = 0; vbY = 0; vbW = parseFloat(wm[1]); vbH = parseFloat(hm[1]);
-          vbSet = true;
-        }
-      }
-      if (!vbSet) {
-        // Final fallback
-        vbX = 0; vbY = 0; vbW = 1100; vbH = 600;
-      }
       // Simpan initial VB untuk tombol Fit
       _initVBX=vbX; _initVBY=vbY; _initVBW=vbW; _initVBH=vbH;
-      dbg('viewBox: ' + vbX + ' ' + vbY + ' ' + vbW + ' ' + vbH);
-      applyVB();
-      dbg('SVG viewBox attr: ' + document.getElementById('diag-svg').getAttribute('viewBox'));
-      var innerRect = inner.getBoundingClientRect();
-      dbg('inner BCR: ' + Math.round(innerRect.width) + 'x' + Math.round(innerRect.height) + ' at ' + Math.round(innerRect.left) + ',' + Math.round(innerRect.top));
-      var svgRect = document.getElementById('diag-svg').getBoundingClientRect();
-      dbg('svg BCR: ' + Math.round(svgRect.width) + 'x' + Math.round(svgRect.height));
-      // Cek apakah elemen pertama di diagram-inner punya ukuran
-      var firstEl = inner.firstElementChild;
-      if (firstEl) {
-        var elRect = firstEl.getBoundingClientRect();
-        dbg('firstEl BCR: ' + Math.round(elRect.width) + 'x' + Math.round(elRect.height) + ' at ' + Math.round(elRect.left) + ',' + Math.round(elRect.top));
-      }
-      // Cek visibility dan display dari wrapper g
-      var wrapperG = inner.parentElement;
-      if (wrapperG) {
-        var cs = window.getComputedStyle(wrapperG);
-        dbg('wrapper g display:' + cs.display + ' visibility:' + cs.visibility + ' opacity:' + cs.opacity);
-      }
+      dbg('viewBox set: ' + vbX + ' ' + vbY + ' ' + vbW + ' ' + vbH);
 
       CURRENT_UNIT = pfdId;
       document.getElementById('hdr-subtitle').textContent = pfdData.name + ' — Process Flow Diagram';
