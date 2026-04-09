@@ -2406,6 +2406,22 @@ async function onPFDChange(pfdId, suppressOverlay) {
       dbg('viewBox: ' + vbX + ' ' + vbY + ' ' + vbW + ' ' + vbH);
       applyVB();
       dbg('SVG viewBox attr: ' + document.getElementById('diag-svg').getAttribute('viewBox'));
+      var innerRect = inner.getBoundingClientRect();
+      dbg('inner BCR: ' + Math.round(innerRect.width) + 'x' + Math.round(innerRect.height) + ' at ' + Math.round(innerRect.left) + ',' + Math.round(innerRect.top));
+      var svgRect = document.getElementById('diag-svg').getBoundingClientRect();
+      dbg('svg BCR: ' + Math.round(svgRect.width) + 'x' + Math.round(svgRect.height));
+      // Cek apakah elemen pertama di diagram-inner punya ukuran
+      var firstEl = inner.firstElementChild;
+      if (firstEl) {
+        var elRect = firstEl.getBoundingClientRect();
+        dbg('firstEl BCR: ' + Math.round(elRect.width) + 'x' + Math.round(elRect.height) + ' at ' + Math.round(elRect.left) + ',' + Math.round(elRect.top));
+      }
+      // Cek visibility dan display dari wrapper g
+      var wrapperG = inner.parentElement;
+      if (wrapperG) {
+        var cs = window.getComputedStyle(wrapperG);
+        dbg('wrapper g display:' + cs.display + ' visibility:' + cs.visibility + ' opacity:' + cs.opacity);
+      }
 
       CURRENT_UNIT = pfdId;
       document.getElementById('hdr-subtitle').textContent = pfdData.name + ' — Process Flow Diagram';
