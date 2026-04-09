@@ -1342,12 +1342,6 @@ const BASE_W=4700, BASE_H=2930;
 function applyVB(){
   svg.setAttribute('viewBox',`${vbX} ${vbY} ${vbW} ${vbH}`);
   ziEl.textContent=Math.round(BASE_W/vbW*100)+'%';
-  // Update background rects agar selalu menutupi seluruh area viewBox (penting saat PFD beda koordinat)
-  var pad = Math.max(vbW, vbH) * 2;
-  svg.querySelectorAll(':scope > rect').forEach(function(r){
-    r.setAttribute('x', vbX - pad); r.setAttribute('y', vbY - pad);
-    r.setAttribute('width', vbW + pad*2); r.setAttribute('height', vbH + pad*2);
-  });
 }
 
 // Convert screen pixels to SVG units (accounts for actual container size)
@@ -2411,6 +2405,7 @@ async function onPFDChange(pfdId, suppressOverlay) {
       _initVBX=vbX; _initVBY=vbY; _initVBW=vbW; _initVBH=vbH;
       dbg('viewBox: ' + vbX + ' ' + vbY + ' ' + vbW + ' ' + vbH);
       applyVB();
+      dbg('SVG viewBox attr: ' + document.getElementById('diag-svg').getAttribute('viewBox'));
 
       CURRENT_UNIT = pfdId;
       document.getElementById('hdr-subtitle').textContent = pfdData.name + ' — Process Flow Diagram';
