@@ -2483,7 +2483,6 @@ function onPFDFileSelect(input) {
       dz.classList.remove('has-file');
       return;
     }
-    _pfdSVGContent = svgText;
     dz.classList.add('has-file');
     document.getElementById('pfd-dz-icon').textContent = '✅';
     document.getElementById('pfd-dz-text').textContent = file.name + ' (' + (svgText.length / 1024).toFixed(1) + ' KB)';
@@ -2494,15 +2493,17 @@ function onPFDFileSelect(input) {
       nameInput.value = file.name.replace(/\.svg$/i, '').replace(/[_-]+/g, ' ');
     }
 
-    // Check if diagram-inner exists
+    // Auto-inject diagram-inner jika belum ada
     var hasDiagramInner = svgText.includes('id="diagram-inner"') || svgText.includes("id='diagram-inner'");
     if (!hasDiagramInner) {
-      st.className = 'pfd-status error';
-      st.textContent = '⚠️ SVG tidak memiliki <g id="diagram-inner"> — tag & kondisi mungkin tidak terhubung dengan benar, tapi tetap bisa digunakan.';
-    } else {
-      st.className = 'pfd-status success';
-      st.textContent = '✅ SVG valid dengan diagram-inner ditemukan';
+      // Wrap semua konten SVG dalam <g id="diagram-inner">
+      svgText = svgText.replace(/(<svg[^>]*>)([\s\S]*)(<\/svg>)/i, function(m, open, inner, close) {
+        return open + '\n<g id="diagram-inner">\n' + inner + '\n</g>\n' + close;
+      });
     }
+    _pfdSVGContent = svgText;
+    st.className = 'pfd-status success';
+    st.textContent = '✅ SVG siap diupload';
     document.getElementById('pfd-save-btn').disabled = false;
   };
   reader.onerror = function() {
