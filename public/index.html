@@ -217,6 +217,26 @@ body{font-family:Arial,Helvetica,sans-serif;background:#f0f2f5;color:#222;height
 #pfd-switch-overlay.show{display:flex}
 #debug-panel{position:fixed;bottom:10px;left:10px;right:10px;max-height:220px;overflow-y:auto;background:rgba(0,0,0,.85);color:#0f0;font-size:11px;font-family:monospace;padding:10px;border-radius:8px;z-index:99999;display:none;border:1px solid #0f0}
 #debug-panel.show{display:block}
+/* ── Assign Tag Modal ── */
+#assign-overlay{position:fixed;inset:0;background:rgba(10,20,50,.5);z-index:5000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(2px)}
+#assign-overlay.open{opacity:1;pointer-events:all}
+#assign-box{background:#fff;border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.22);width:380px;max-width:95vw;overflow:hidden;transform:translateY(16px) scale(.98);transition:transform .22s cubic-bezier(.34,1.56,.64,1)}
+#assign-overlay.open #assign-box{transform:translateY(0) scale(1)}
+.assign-hdr{padding:14px 18px;background:linear-gradient(135deg,#1565c0,#1e88e5);display:flex;align-items:center;gap:10px}
+.assign-hdr-icon{width:32px;height:32px;background:rgba(255,255,255,.18);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.assign-hdr h3{font-size:13px;font-weight:700;color:#fff;flex:1;margin:0}
+.assign-body{padding:18px}
+.assign-field{margin-bottom:14px}
+.assign-field label{display:block;font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.assign-field input,.assign-field select{width:100%;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;outline:none;transition:border .15s;box-sizing:border-box}
+.assign-field input:focus,.assign-field select:focus{border-color:#1565c0;box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+.assign-hint{font-size:10px;color:#9ca3af;margin-top:4px}
+.assign-foot{padding:12px 18px 16px;display:flex;gap:8px;justify-content:flex-end;background:#f8faff;border-top:1px solid #eef2ff}
+.assign-cancel{padding:8px 20px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid #e2e8f0;background:#fff;color:#6b7280}
+.assign-save{padding:8px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,#1565c0,#1e88e5);color:#fff}
+.assign-save:hover{background:linear-gradient(135deg,#0d47a1,#1565c0)}
+/* Highlight elemen yang bisa di-assign (hover) */
+.svg-assignable{cursor:crosshair !important;outline:2px dashed #1e88e5;outline-offset:2px}
 .pfd-sw-spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
 .pfd-sw-text{color:#fff;font-size:13px;font-weight:600}
 
@@ -1092,12 +1112,14 @@ function storeOrig(){
   // Key by element reference so tag renames don't break color lookup
   document.querySelectorAll('#diagram-inner g[data-tag]').forEach(g=>{
     const saved=[];
-    g.querySelectorAll('path,rect,ellipse,circle').forEach(s=>{
+    g.querySelectorAll('path,rect,ellipse,circle,line,polyline,polygon').forEach(s=>{
       var fill   = s.getAttribute('fill');
       var stroke = s.getAttribute('stroke');
       var vis    = s.getAttribute('visibility');
-      // isLine: fill=none means color is in stroke (pipes/lines)
-      var isLine = (!fill || fill==='none') && stroke && stroke!=='white' && stroke!=='none' && vis!=='hidden';
+      // isLine: elemen <line>/<polyline> selalu stroke-based
+      // atau fill=none dengan stroke aktif (pipes menggunakan path)
+      var isLineEl = (s.tagName === 'line' || s.tagName === 'polyline');
+      var isLine = isLineEl || ((!fill || fill==='none') && stroke && stroke!=='white' && stroke!=='none' && vis!=='hidden');
       saved.push({ el:s, fill:fill, stroke:stroke, isLine:isLine });
     });
     origColors.set(g, saved);
@@ -2153,6 +2175,7 @@ function rebindSVGEvents() {
     g.addEventListener('mousemove', mvTip);
   });
   if (typeof bindEditEvents === 'function') bindEditEvents();
+  if (typeof bindAssignableElements === 'function') bindAssignableElements();
 }
 
 // ── initForUnit: full load sequence for a given unit ─────────────────────────
@@ -3366,7 +3389,139 @@ if (_btnDl) _btnDl.addEventListener('click', async function() {
     </div>
   </div>
 </div>
+<!-- ── Assign Tag Modal ── -->
+<div id="assign-overlay" onclick="if(event.target===this)closeAssignModal()">
+  <div id="assign-box">
+    <div class="assign-hdr">
+      <div class="assign-hdr-icon">🏷️</div>
+      <h3 id="assign-title">Assign Tag ke Elemen</h3>
+      <button class="x-btn" onclick="closeAssignModal()">✕</button>
+    </div>
+    <div class="assign-body">
+      <div class="assign-field">
+        <label>Tag / Nomor Equipment</label>
+        <input type="text" id="assign-tag-input" placeholder="Contoh: V-101, P-102, E-103..." autocomplete="off">
+        <div class="assign-hint">Tag ini akan digunakan untuk tracking kondisi</div>
+      </div>
+      <div class="assign-field">
+        <label>Tipe Equipment</label>
+        <select id="assign-type-select">
+          <option value="">— Pilih Tipe —</option>
+          <option value="Vessel">Vessel</option>
+          <option value="Column / Tower">Column / Tower</option>
+          <option value="Heat Exchanger">Heat Exchanger</option>
+          <option value="Pump">Pump</option>
+          <option value="Compressor">Compressor</option>
+          <option value="Fired Heater">Fired Heater</option>
+          <option value="Pipe/Line No.">Pipe / Line No.</option>
+          <option value="Process Line">Process Line</option>
+          <option value="Process Stream">Process Stream</option>
+          <option value="Instrument">Instrument</option>
+          <option value="Valve">Valve</option>
+          <option value="Tank">Tank</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="assign-foot">
+      <button class="assign-cancel" onclick="closeAssignModal()">Batal</button>
+      <button class="assign-save" onclick="saveAssignTag()">💾 Simpan Tag</button>
+    </div>
+  </div>
+</div>
 
+
+<script>
+// ══════════════════════════════════════════════════════
+//  ASSIGN TAG — klik elemen SVG polos → assign tag
+// ══════════════════════════════════════════════════════
+var _assignTarget = null;
+
+function bindAssignableElements() {
+  var inner = document.getElementById('diagram-inner');
+  if (!inner) return;
+  inner.querySelectorAll('g').forEach(function(g) {
+    if (g.hasAttribute('data-uid')) return;
+    if (g.hasAttribute('data-assign-bound')) return;
+    var hasShape = g.querySelector('rect,circle,ellipse,path,line,polyline,polygon');
+    if (!hasShape) return;
+    g.setAttribute('data-assign-bound', '1');
+    g.style.cursor = 'pointer';
+    g.addEventListener('mouseenter', function() {
+      if (!g.hasAttribute('data-uid')) g.classList.add('svg-assignable');
+    });
+    g.addEventListener('mouseleave', function() {
+      g.classList.remove('svg-assignable');
+    });
+    g.addEventListener('click', function(e) {
+      if (g.hasAttribute('data-uid')) return;
+      e.stopPropagation();
+      openAssignModal(g);
+    });
+  });
+}
+
+function openAssignModal(g) {
+  _assignTarget = g;
+  document.getElementById('assign-tag-input').value = '';
+  document.getElementById('assign-type-select').value = '';
+  document.getElementById('assign-overlay').classList.add('open');
+  setTimeout(function(){ document.getElementById('assign-tag-input').focus(); }, 200);
+}
+
+function closeAssignModal() {
+  document.getElementById('assign-overlay').classList.remove('open');
+  if (_assignTarget) _assignTarget.classList.remove('svg-assignable');
+  _assignTarget = null;
+}
+
+async function saveAssignTag() {
+  var tag = document.getElementById('assign-tag-input').value.trim();
+  var type = document.getElementById('assign-type-select').value;
+  if (!tag) { document.getElementById('assign-tag-input').focus(); return; }
+  if (!_assignTarget) return;
+
+  var uid = 'uid-' + tag.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now().toString(36);
+
+  _assignTarget.setAttribute('data-uid', uid);
+  _assignTarget.setAttribute('data-tag', tag);
+  _assignTarget.setAttribute('data-tip', 'Type: ' + (type||'') + '\nTag: ' + tag);
+  _assignTarget.style.cursor = 'pointer';
+  _assignTarget.classList.remove('svg-assignable');
+  _assignTarget.removeAttribute('data-assign-bound');
+
+  if (API_URL) {
+    try {
+      await apiPost('/api/tags', { unit: CURRENT_UNIT, uid: uid, tag: tag, type: type||null });
+    } catch(e) { console.warn('Failed to save tag:', e); }
+  }
+
+  storeOrig();
+
+  var el = _assignTarget;
+  el.addEventListener('mouseenter', function(e){ showTip(e, el); });
+  el.addEventListener('mouseleave', hideTip);
+  el.addEventListener('mousemove', mvTip);
+  el.addEventListener('dblclick', function(e) {
+    e.preventDefault(); e.stopPropagation();
+    openEditUID(uid);
+  });
+
+  if (EQUIP_LIST.findIndex(function(e){ return e.tag===tag; }) < 0) {
+    EQUIP_LIST.push({ tag: tag, type: type||'', status: 'Normal', color: '' });
+    refreshTypeDropdowns();
+  }
+
+  var saved = _assignTarget;
+  closeAssignModal();
+  saved.style.outline = '3px solid #4caf50';
+  setTimeout(function(){ saved.style.outline = ''; }, 1200);
+}
+
+document.getElementById('assign-tag-input').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') saveAssignTag();
+});
+</script>
 
 </body>
 </html>
